@@ -1,4 +1,5 @@
 ### Solenoid
+[![Actions Status](https://github.com/jdrtommey/solenoid/workflows/Rust/badge.svg)](https://github.com/jdrtommey/solenoid/actions)
 
 This small package impliments a numerical solution for finding the off-axis magnetic field due to systems with cyclindrical symmetry, i.e. coils and solenoids. The exact method used is shown in https://ieeexplore.ieee.org/document/760416. 
 Analytic solutions exist for some of these systems based on elliptical functions however these are numerically slower to impliment, and provided the region on interest is sufficiently close to the middle of the symmetry axis are no more accurate.
