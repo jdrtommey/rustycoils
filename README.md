@@ -1,5 +1,5 @@
 ### Solenoid
-[![Actions Status](https://github.com/jdrtommey/solenoid/workflows/Tests/badge.svg)](https://github.com/jdrtommey/solenoid/actions)
+[![Actions Status](https://github.com/jdrtommey/solenoid/workflows/Test/badge.svg)](https://github.com/jdrtommey/solenoid/actions)
 [![Actions Status](https://github.com/jdrtommey/solenoid/workflows/LintFormat/badge.svg)](https://github.com/jdrtommey/solenoid/actions)
 
 This small package impliments a numerical solution for finding the off-axis magnetic field due to systems with cyclindrical symmetry, i.e. coils and solenoids. The exact method used is shown in https://ieeexplore.ieee.org/document/760416. 
