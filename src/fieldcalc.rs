@@ -215,7 +215,7 @@ pub mod primitives {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             write!(
                 f,
-                "Ideal Wire: radius={},thickness={},axial position={},current={} ",
+                "ThinAnnular: radius={},thickness={},axial position={},current={} ",
                 self.radius, self.thickness, self.z0, self.current_density
             )
         }
@@ -284,7 +284,7 @@ pub mod primitives {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             write!(
                 f,
-                "Ideal Wire: radius={},length={},axial position={},current={} ",
+                "ThinSolenoid: radius={},length={},axial position={},current={} ",
                 self.radius, self.length, self.z0, self.current_density
             )
         }
@@ -396,7 +396,7 @@ pub mod primitives {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             write!(
                 f,
-                "Ideal Wire: radius={},length={},thickness={},axial position={},current={} ",
+                "CoilSolenoid: radius={},length={},thickness={},axial position={},current={} ",
                 self.radius, self.length, self.thickness, self.z0, self.current_density
             )
         }
