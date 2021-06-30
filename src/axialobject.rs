@@ -14,12 +14,27 @@ use std::fmt;
 //have that field, if "COIL" passed will modify all COILS etc.
 //get_field((x,y,z)) this function calls the magnetic field due to all primatives in
 //the class and returns the sum.
+#[derive(Debug, PartialEq)]
 pub struct AxialObject {
     objects: HashMap<String, Primitives>,
     origin: (f64, f64, f64),
     orientation: (f64, f64, f64),
 }
 
+impl fmt::Display for AxialObject {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "Origin:({},{},{}),Orientation:({},{},{})",
+            self.origin.0,
+            self.origin.1,
+            self.origin.2,
+            self.orientation.0,
+            self.orientation.1,
+            self.orientation.2
+        )
+    }
+}
 impl AxialObject {
     pub fn new(origin: (f64, f64, f64), orientation: (f64, f64, f64)) -> AxialObject {
         AxialObject {
