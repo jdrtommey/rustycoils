@@ -1,9 +1,9 @@
 // REFERENCE PAPER = "Off-Axis Expansion Solution of Laplace's Equation: Application to Accurate
 // and Rapid Calculation of Coil Magnetic Fields" by Robert H. Jackson.
 // each primitive impliments Prititive trait which contains a get_fields(z,r,tol) function
-// which returns the axial and radial fields. 
+// which returns the axial and radial fields.
 // Primitives are described in Fig.1. of reference paper and include
-// an ideal current loop, an annular, a thin solenoid and a coil. 
+// an ideal current loop, an annular, a thin solenoid and a coil.
 pub mod primitives {
     use super::polynomials;
     use std::fmt;
@@ -171,14 +171,18 @@ pub mod primitives {
         pub fn set_radius(&mut self, radius: f64) {
             self.radius = radius;
         }
+        //takes a current measured in A and converts it into the current density as
+        //current/thickness
         pub fn set_current(&mut self, current: f64) {
-            self.current_density = current;
+            self.current_density = current / self.thickness;
         }
         pub fn set_z0(&mut self, z0: f64) {
             self.z0 = z0;
         }
         pub fn set_thickness(&mut self, thickness: f64) {
+            let current = self.thickness * self.current_density; //find the total current.
             self.thickness = thickness;
+            self.set_current(current);
         }
     }
     impl Primitive for ThinAnnular {
@@ -239,14 +243,17 @@ pub mod primitives {
         pub fn set_radius(&mut self, radius: f64) {
             self.radius = radius;
         }
+        //sets the current_density of the solenoid as current/length
         pub fn set_current(&mut self, current: f64) {
-            self.current_density = current;
+            self.current_density = current / self.length;
         }
         pub fn set_z0(&mut self, z0: f64) {
             self.z0 = z0;
         }
         pub fn set_length(&mut self, length: f64) {
+            let current = self.current_density * self.length;
             self.length = length;
+            self.set_current(current);
         }
     }
     impl Primitive for ThinSolenoid {
@@ -314,17 +321,22 @@ pub mod primitives {
         pub fn set_radius(&mut self, radius: f64) {
             self.radius = radius;
         }
+        // set current density as current/(thickness*length)
         pub fn set_current(&mut self, current: f64) {
-            self.current_density = current;
+            self.current_density = current / (self.thickness * self.length);
         }
         pub fn set_z0(&mut self, z0: f64) {
             self.z0 = z0;
         }
         pub fn set_length(&mut self, length: f64) {
+            let current = self.current_density * self.length * self.thickness;
             self.length = length;
+            self.set_current(current);
         }
         pub fn set_thickness(&mut self, thickness: f64) {
+            let current = self.current_density * self.length * self.thickness;
             self.thickness = thickness;
+            self.set_current(current);
         }
     }
     impl Primitive for CoilSolenoid {
