@@ -131,6 +131,48 @@ impl AxialObject {
     }
 }
 
+//view functions
+//
+impl AxialObject {
+    pub fn view_primitive(self, id: &str) -> Result<String, AxialError> {
+        match _is_id_valid(&self.objects, id) {
+            AxialError::KeyDuplicateError(_) => {}
+            error => return Err(error),
+        }
+        let primitive = self.objects.get(id);
+        if let Some(primitive) = primitive {
+            Ok(primitive.to_string())
+        } else {
+            Err(AxialError::KeyMissingError(id.to_string()))
+        }
+    }
+}
+#[cfg(test)]
+mod test_view {
+    use super::*;
+    #[test]
+    fn test_view_correct_id() -> Result<(), AxialError> {
+        let mut mycoil = AxialObject::default();
+        let _res = mycoil.add_loop("loop1".to_string(), 0.0, 0.0, 0.0);
+        let string = mycoil.view_primitive("loop1")?;
+        assert_eq!(
+            Primitives::IdealWire(IdealWire::new(0.0, 0.0, 0.0)).to_string(),
+            string
+        );
+        Ok(())
+    }
+    #[test]
+    fn test_view_wrong_id() -> Result<(), AxialError> {
+        let mut mycoil = AxialObject::default();
+        let _res = mycoil.add_loop("loop1".to_string(), 0.0, 0.0, 0.0);
+        let answer = mycoil.view_primitive("loop2");
+        assert_eq!(
+            answer,
+            Err(AxialError::KeyMissingError("loop2".to_string()))
+        );
+        Ok(())
+    }
+}
 //transform functions
 impl AxialObject {
     pub fn transform_x(&mut self) {
