@@ -1,3 +1,7 @@
+///
+/// Test the ideal loop case against the analytic formula for the 
+/// ideal current loop.
+///
 #[cfg(test)]
 extern crate rgsl;
 use solenoid;
@@ -76,7 +80,7 @@ fn get_radial_field(r: f64, z: f64, z0: f64, radius: f64, current: f64) -> f64 {
         let second_factor = 1.0 / (1.0 - k_squared);
         let first_ellip = ellip_k(t);
         let second_ellip = ellip_e(t);
-        overall_term * (first_ellip + second_factor * second_ellip)
+        overall_term * (-first_ellip+ second_factor * second_ellip)
     }
 }
 
@@ -107,12 +111,27 @@ fn compare_unit_loop_off_axis() {
     assert!(err_tol(computed_axial_field, ana_axial_field, &1e-10));
 }
 #[test]
+fn compare_unit_loop_off_axis_1() {
+    let mut myloop = solenoid::AxialObject::default();
+    let radius = 1.0;
+    let current = 1.0;
+    let x0 = 0.0;
+    let r = 0.5;
+    let z = 1.0;
+    let pos = (z, r, 0.0);
+    myloop.add_loop("loop1".to_string(), radius, x0, current);
+    let computed_axial_field = myloop.get_field(&pos, &1e-20).0;
+    let ana_axial_field = get_axial_field(r, z, x0, radius, current);
+    assert_eq!(computed_axial_field, ana_axial_field);
+    assert!(err_tol(computed_axial_field, ana_axial_field, &1e-10));
+}
+#[test]
 fn compare_unit_loop_off_axis_radial() {
     let mut myloop = solenoid::AxialObject::default();
     let radius = 1.0;
     let current = 1.0;
     let x0 = 0.0;
-    let r = 0.25;
+    let r = 0.01;
     let z = 1.0;
     let pos = (z, r, 0.0);
     myloop.add_loop("loop1".to_string(), radius, x0, current);
@@ -120,4 +139,41 @@ fn compare_unit_loop_off_axis_radial() {
     let ana_axial_field = get_radial_field(r, z, x0, radius, current);
     assert_eq!(computed_axial_field, ana_axial_field);
     assert!(err_tol(computed_axial_field, ana_axial_field, &1e-9));
+}
+#[test]
+fn compare_unit_loop_off_axis_radial2() {
+    let mut myloop = solenoid::AxialObject::default();
+    let radius = 1.0;
+    let current = 1.0;
+    let x0 = 0.0;
+    let r = 0.05;
+    let z = 1.0;
+    let pos = (z, r, 0.0);
+    myloop.add_loop("loop1".to_string(), radius, x0, current);
+    let computed_axial_field1 = myloop.get_field(&pos, &1e-20).1;
+    let computed_axial_field = myloop.get_field_axial(&z,&r,&1e-20);
+    let ana_axial_field = get_radial_field(r, z, x0, radius, current);
+    assert_eq!(computed_axial_field.0, ana_axial_field);
+}
+#[test]
+fn compare_unit_loop_off_axis_radial3() {
+    let mut myloop = solenoid::AxialObject::default();
+    let radius = 1.0;
+    let current = 1.0;
+    let x0 = 0.0;
+    let r = 0.05;
+    let z = 1.0;
+    let pos = (z, r, 0.0);
+    myloop.add_loop("loop1".to_string(), radius, x0, current);
+    let computed_axial_field1 = myloop.get_field(&pos, &1e-20);
+    let computed_axial_field = myloop.get_field_axial(&z,&r,&1e-20);
+    let ana_axial_field = get_radial_field(r, z, x0, radius, current);
+    assert_eq!(computed_axial_field.0, computed_axial_field1.0);
+    assert_eq!(computed_axial_field.1, computed_axial_field1.1);
+}
+#[test]
+fn test(){
+    let z = 1.0;
+    let r = 0.01;
+    assert_eq!(get_radial_field(r,z , 0.0, 1.0, 0.5),get_axial_field(r,z,0.0,1.0,0.5));
 }
