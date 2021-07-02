@@ -7,7 +7,7 @@
 pub mod primitives {
     use super::polynomials;
     use std::fmt;
-    const MU0: f64 = 1.25663706e-6;
+    const MU0: f64 = 1.25663706212e-6;
     //trait which acts on all primitive shapes to sum the analtyic polynomials.
     pub trait Primitive {
         // finds the value of the nth derivative at location x, specific to each primitive
