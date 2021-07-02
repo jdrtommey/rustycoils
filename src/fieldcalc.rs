@@ -72,8 +72,8 @@ pub mod primitives {
 
         let x_denom = f64::sqrt(1.0 + x * x) * f64::powi(1.0 + x * x, (n + 1) as i32);
 
-        let norm = 1.0 / f64::powi(*norm, *n as i32);
-        norm * (poly_res_x / x_denom)
+        let total_norm = 1.0 / f64::powi(*norm, *n as i32);
+        total_norm * (poly_res_x / x_denom)
     }
     //function returns b^(n)(x) normalised by 1/(norm^n) for the annular disk.
     fn _get_annular_normalized_b(n: &u32, x: &f64, norm: &f64) -> f64 {
