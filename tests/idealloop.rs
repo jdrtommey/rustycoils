@@ -1,5 +1,5 @@
 ///
-/// Test the ideal loop case against the analytic formula for the 
+/// Test the ideal loop case against the analytic formula for the
 /// ideal current loop.
 ///
 #[cfg(test)]
@@ -20,13 +20,11 @@ fn err_tol(x: f64, y: f64, tol: &f64) -> bool {
         false
     }
 }
-fn float_compare(a:f64,b:f64,epsilon:f64)->bool{
-    
-    if a == b{
-        return true
-    }
-    else if ((a-b)/b).abs() < epsilon {
-       return true
+fn float_compare(a: f64, b: f64, epsilon: f64) -> bool {
+    if a == b {
+        return true;
+    } else if ((a - b) / b).abs() < epsilon {
+        return true;
     }
     false
 }
@@ -57,7 +55,6 @@ fn get_t(k_squared: f64) -> f64 {
     ((2.0 * k_squared) / (1.0 + k_squared)).sqrt()
 }
 
-
 fn get_axial_field(r: f64, z: f64, z0: f64, radius: f64, current: f64) -> f64 {
     let x = get_x(z, z0, radius);
     let b0 = get_b0(current, radius);
@@ -87,7 +84,7 @@ fn get_radial_field(r: f64, z: f64, z0: f64, radius: f64, current: f64) -> f64 {
         let second_factor = 1.0 / (1.0 - k_squared);
         let first_ellip = ellip_k(t);
         let second_ellip = ellip_e(t);
-        overall_term * (-first_ellip+ second_factor * second_ellip)
+        overall_term * (-first_ellip + second_factor * second_ellip)
     }
 }
 
@@ -100,10 +97,10 @@ fn compare_unit_loop_on_axis_center() {
     let z = 1.0;
     let r = 0.0;
     let _res = myloop.add_loop("loop1".to_string(), radius, x0, current);
-    let computed_field = myloop.get_field_axial(&z,&r, &1e-20);
-    let ana_axial_field = get_axial_field(r,z,x0,radius,current);
-    let ana_radial_field = get_radial_field(r,z,x0,radius,current);
-    assert_eq!(computed_field.0,ana_axial_field);
+    let computed_field = myloop.get_field_axial(&z, &r, &1e-20);
+    let ana_axial_field = get_axial_field(r, z, x0, radius, current);
+    let ana_radial_field = get_radial_field(r, z, x0, radius, current);
+    assert_eq!(computed_field.0, ana_axial_field);
     assert!(float_compare(computed_field.0, ana_axial_field, 0.001));
     assert!(float_compare(computed_field.1, ana_radial_field, 0.001));
 }
@@ -116,9 +113,9 @@ fn compare_unit_loop_off_axis_center() {
     let z = 1.0;
     let r = 0.1;
     let _res = myloop.add_loop("loop1".to_string(), radius, x0, current);
-    let computed_field = myloop.get_field_axial(&z,&r, &1e-20);
-    let ana_axial_field = get_axial_field(r,z,x0,radius,current);
-    let ana_radial_field = get_radial_field(r,z,x0,radius,current);
+    let computed_field = myloop.get_field_axial(&z, &r, &1e-20);
+    let ana_axial_field = get_axial_field(r, z, x0, radius, current);
+    let ana_radial_field = get_radial_field(r, z, x0, radius, current);
     assert!(float_compare(computed_field.0, ana_axial_field, 0.001));
     assert!(float_compare(computed_field.1, ana_radial_field, 0.001));
 }
@@ -131,9 +128,9 @@ fn compare_unit_loop_off_axis_center_arb_numbers() {
     let z = 1.3;
     let r = 0.4;
     let _res = myloop.add_loop("loop1".to_string(), radius, x0, current);
-    let computed_field = myloop.get_field_axial(&z,&r, &1e-20);
-    let ana_axial_field = get_axial_field(r,z,x0,radius,current);
-    let ana_radial_field = get_radial_field(r,z,x0,radius,current);
+    let computed_field = myloop.get_field_axial(&z, &r, &1e-20);
+    let ana_axial_field = get_axial_field(r, z, x0, radius, current);
+    let ana_radial_field = get_radial_field(r, z, x0, radius, current);
     assert!(float_compare(computed_field.0, ana_axial_field, 0.001));
     assert!(float_compare(computed_field.1, ana_radial_field, 0.001));
 }

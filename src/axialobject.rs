@@ -483,8 +483,7 @@ impl AxialObject {
         let (field_z, field_r) = self.get_field_in_frame(&(*x, *y, *z), tol);
         _convert_axial_to_cartesian((field_z, field_r, theta), self.origin, self.orientation)
     }
-    pub fn get_field_axial(&self,z:&f64,r:&f64,tol:&f64)->(f64,f64){
-
+    pub fn get_field_axial(&self, z: &f64, r: &f64, tol: &f64) -> (f64, f64) {
         let mut field_z = 0.0;
         let mut field_r = 0.0;
         for (_, object) in self.objects.iter() {
