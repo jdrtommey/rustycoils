@@ -134,3 +134,57 @@ fn compare_unit_loop_off_axis_center_arb_numbers() {
     assert!(float_compare(computed_field.0, ana_axial_field, 0.001));
     assert!(float_compare(computed_field.1, ana_radial_field, 0.001));
 }
+#[test]
+fn compare_unit_loop_off_axis_center_xyz() {
+    let mut myloop = solenoid::AxialObject::default();
+    let radius = 1.9;
+    let current = 3.0;
+    let x0 = 0.1;
+    let z = 1.3;
+    let r = 0.4;
+    let pos = (z, r, 0.0);
+    let _res = myloop.add_loop("loop1".to_string(), radius, x0, current);
+    let computed_field = myloop.get_field(&pos, &1e-20);
+    let ana_axial_field = get_axial_field(r, z, x0, radius, current);
+    let ana_radial_field = get_radial_field(r, z, x0, radius, current);
+    assert!(float_compare(computed_field.0, ana_axial_field, 0.001));
+    assert!(float_compare(computed_field.1, ana_radial_field, 0.001));
+}
+#[test]
+fn compare_unit_loop_off_axis_center_xyz_rotate() {
+    let mut myloop = solenoid::AxialObject::default();
+    let _res = myloop.transform_y();
+    let radius = 1.9;
+    let current = 3.0;
+    let x0 = 0.1;
+    let z = 1.3;
+    let r = 0.4;
+    let pos = (r, z, 0.0);
+    let _res = myloop.add_loop("loop1".to_string(), radius, x0, current);
+    let computed_field = myloop.get_field(&pos, &1e-20);
+    let ana_axial_field = get_axial_field(r, z, x0, radius, current);
+    let ana_radial_field = get_radial_field(r, z, x0, radius, current);
+    assert!(float_compare(computed_field.1, ana_axial_field, 0.001));
+    assert!(float_compare(computed_field.0, ana_radial_field, 0.001));
+}
+//place the radial in both x and y.
+#[test]
+fn compare_unit_loop_off_axis_center_r_in_both() {
+    let mut myloop = solenoid::AxialObject::default();
+    let _res = myloop.transform_z();
+    let radius = 1.9;
+    let current = 3.0;
+    let x0 = 0.1;
+    let z = 1.3;
+    let r = 0.4;
+    let x = (r) / f64::sqrt(2.0);
+    let y = x;
+    let pos = (x, y, z);
+    let _res = myloop.add_loop("loop1".to_string(), radius, x0, current);
+    let computed_field = myloop.get_field(&pos, &1e-20);
+    let ana_axial_field = get_axial_field(r, z, x0, radius, current);
+    let ana_radial_field = get_radial_field(r, z, x0, radius, current);
+    let computed_radial = (f64::powi(computed_field.0, 2) + f64::powi(computed_field.1, 2)).sqrt();
+    assert!(float_compare(computed_field.2, ana_axial_field, 0.001));
+    assert!(float_compare(computed_radial, ana_radial_field, 0.001));
+}
