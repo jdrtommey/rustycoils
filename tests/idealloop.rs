@@ -4,7 +4,7 @@
 ///
 #[cfg(test)]
 extern crate rgsl;
-use solenoid;
+use rustycoils;
 const MU0: f64 = 1.25663706212 * 1e-6;
 const PI: f64 = std::f64::consts::PI;
 fn ellip_k(k: f64) -> f64 {
@@ -90,7 +90,7 @@ fn get_radial_field(r: f64, z: f64, z0: f64, radius: f64, current: f64) -> f64 {
 
 #[test]
 fn compare_unit_loop_on_axis_center() {
-    let mut myloop = solenoid::AxialObject::default();
+    let mut myloop = rustycoils::AxialSystem::default();
     let radius = 1.0;
     let current = 1.0;
     let x0 = 0.0;
@@ -106,7 +106,7 @@ fn compare_unit_loop_on_axis_center() {
 }
 #[test]
 fn compare_unit_loop_off_axis_center() {
-    let mut myloop = solenoid::AxialObject::default();
+    let mut myloop = rustycoils::AxialSystem::default();
     let radius = 1.0;
     let current = 1.0;
     let x0 = 0.0;
@@ -121,7 +121,7 @@ fn compare_unit_loop_off_axis_center() {
 }
 #[test]
 fn compare_unit_loop_off_axis_center_arb_numbers() {
-    let mut myloop = solenoid::AxialObject::default();
+    let mut myloop = rustycoils::AxialSystem::default();
     let radius = 1.9;
     let current = 3.0;
     let x0 = 0.1;
@@ -136,7 +136,7 @@ fn compare_unit_loop_off_axis_center_arb_numbers() {
 }
 #[test]
 fn compare_unit_loop_off_axis_center_xyz() {
-    let mut myloop = solenoid::AxialObject::default();
+    let mut myloop = rustycoils::AxialSystem::default();
     let radius = 1.9;
     let current = 3.0;
     let x0 = 0.1;
@@ -152,7 +152,7 @@ fn compare_unit_loop_off_axis_center_xyz() {
 }
 #[test]
 fn compare_unit_loop_off_axis_center_xyz_rotate() {
-    let mut myloop = solenoid::AxialObject::default();
+    let mut myloop = rustycoils::AxialSystem::default();
     let _res = myloop.transform_y();
     let radius = 1.9;
     let current = 3.0;
@@ -170,7 +170,7 @@ fn compare_unit_loop_off_axis_center_xyz_rotate() {
 //place the radial in both x and y.
 #[test]
 fn compare_unit_loop_off_axis_center_r_in_both() {
-    let mut myloop = solenoid::AxialObject::default();
+    let mut myloop = rustycoils::AxialSystem::default();
     let _res = myloop.transform_z();
     let radius = 1.9;
     let current = 3.0;

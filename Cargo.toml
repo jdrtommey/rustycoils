@@ -1,5 +1,5 @@
 [package]
-name = "solenoid"
+name = "rustycoils"
 version = "0.1.0"
 authors = ["Jake Tommey"]
 edition = "2018"

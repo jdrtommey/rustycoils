@@ -1,5 +1,6 @@
 use crate::fieldcalc::primitives::{CoilSolenoid, IdealWire, Primitive, ThinAnnular, ThinSolenoid};
 use std::collections::HashMap;
+use std::error::Error;
 use std::fmt;
 
 //public api struct. Groups a set of primitive types which
@@ -14,14 +15,28 @@ use std::fmt;
 //have that field, if "COIL" passed will modify all COILS etc.
 //get_field((x,y,z)) this function calls the magnetic field due to all primatives in
 //the class and returns the sum.
+//
 #[derive(Debug, PartialEq)]
-pub struct AxialObject {
+/// Structure which defines a system of primitives with a shared symmetry axis.
+///
+/// This allows for large number of primitive shapes to be combined to generate a more
+/// complicated magentic field struture. The system is defined by an origin vector and
+/// a orientation vector. Currently only orientations along the x,y,z axes and placed at
+/// the origin of the global coordinate system are allowed.
+///
+/// individual primitives can be added to the AxialSystem and are stored in a HashMap with String
+/// based keys. These keys allow individual primitives to be accessed and modifies. Functions exist
+/// to modify individual physical parameters such as radius,length,thickness,position,current. The
+/// magnetic field is computed currently by working out the individual magentic field of each
+/// primitive individually. TO-DO: include rayon support for parallel compuation of the primitive
+/// magnetic fields.
+pub struct AxialSystem {
     objects: HashMap<String, Primitives>,
     origin: (f64, f64, f64),
     orientation: (f64, f64, f64),
 }
 
-impl fmt::Display for AxialObject {
+impl fmt::Display for AxialSystem {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
@@ -35,16 +50,43 @@ impl fmt::Display for AxialObject {
         )
     }
 }
-impl AxialObject {
-    pub fn new(origin: (f64, f64, f64), orientation: (f64, f64, f64)) -> AxialObject {
-        AxialObject {
+impl AxialSystem {
+    /// Returns a new AxialSystem
+    ///
+    /// Currently only supports objects located at the origin
+    /// with their orientation along any of the x,y,z directions
+    /// and so internally calls the default method.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// # use rustycoils::AxialSystem;
+    /// let axial = AxialSystem::new((0.0,0.0,0.0),(1.0,0.0,0.0));
+    /// ```
+    pub fn new(origin: (f64, f64, f64), orientation: (f64, f64, f64)) -> AxialSystem {
+        AxialSystem {
             objects: HashMap::new(),
             origin,
             orientation,
         }
     }
-    pub fn default() -> AxialObject {
-        AxialObject {
+    /// Returns the default AxialSystem
+    ///
+    /// This has the shared symmetry axis located at the global origin (0,0,0)
+    /// with its symmetry axis along the x axis (1,0,0).
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// # use rustycoils::{AxialSystem,AxialError};
+    /// let axial = AxialSystem::default();
+    /// ```
+    pub fn default() -> AxialSystem {
+        AxialSystem {
             objects: HashMap::new(),
             origin: (0.0, 0.0, 0.0),
             orientation: (1.0, 0.0, 0.0),
@@ -52,7 +94,28 @@ impl AxialObject {
     }
 }
 //Add functions
-impl AxialObject {
+impl AxialSystem {
+    /// Adds an instance of the ideal loop to the AxialSystem
+    ///
+    /// Provide a unique identifer for the primitive as a String
+    /// method checks if the identifier is allowed due to either
+    /// clashing with a reserved word or due to a primitive already
+    /// sharing the name.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// # use rustycoils::{AxialSystem,AxialError};
+    /// let mut axial = AxialSystem::default();
+    /// let result = axial.add_loop("loop1".to_string(),1.0,0.0,1.0);
+    /// assert_eq!(result,Ok(()));
+    /// let result2 = axial.add_loop("loop1".to_string(),2.0,1.0,1.0);
+    /// assert_eq!(result2,Err(AxialError::KeyDuplicateError("loop1".to_string())));
+    /// let result3 = axial.add_loop("LOOP".to_string(),2.0,1.0,1.0);
+    /// assert_eq!(result3,Err(AxialError::ReservedWordError("LOOP".to_string())));
+    /// ```
     pub fn add_loop(
         &mut self,
         id: String,
@@ -68,6 +131,27 @@ impl AxialObject {
         self.objects.insert(id, new_loop);
         Ok(())
     }
+    /// Adds an instance of the annular primitive to the AxialSystem
+    ///
+    /// Provide a unique identifer for the primitive as a String
+    /// method checks if the identifier is allowed due to either
+    /// clashing with a reserved word or due to a primitive already
+    /// sharing the name.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// # use rustycoils::{AxialSystem,AxialError};
+    /// let mut axial = AxialSystem::default();
+    /// let result = axial.add_annular("annular1".to_string(),1.0,0.1,0.0,1.0);
+    /// assert_eq!(result,Ok(()));
+    /// let result2 = axial.add_annular("annular1".to_string(),2.0,0.1,1.0,1.0);
+    /// assert_eq!(result2,Err(AxialError::KeyDuplicateError("annular1".to_string())));
+    /// let result3 = axial.add_annular("ANNULAR".to_string(),2.0,0.1,1.0,1.0);
+    /// assert_eq!(result3,Err(AxialError::ReservedWordError("ANNULAR".to_string())));
+    /// ```
     pub fn add_annular(
         &mut self,
         id: String,
@@ -84,6 +168,27 @@ impl AxialObject {
         self.objects.insert(id, new_annular);
         Ok(())
     }
+    /// Adds an instance of the thin solenoid primitive to the AxialSystem
+    ///
+    /// Provide a unique identifer for the primitive as a String
+    /// method checks if the identifier is allowed due to either
+    /// clashing with a reserved word or due to a primitive already
+    /// sharing the name.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// # use rustycoils::{AxialSystem,AxialError};
+    /// let mut axial = AxialSystem::default();
+    /// let result = axial.add_thin_solenoid("solenoid1".to_string(),1.0,10.0,0.0,1.0);
+    /// assert_eq!(result,Ok(()));
+    /// let result2 = axial.add_thin_solenoid("solenoid1".to_string(),2.0,0.1,1.0,1.0);
+    /// assert_eq!(result2,Err(AxialError::KeyDuplicateError("solenoid1".to_string())));
+    /// let result3 = axial.add_thin_solenoid("SOLENOID".to_string(),2.0,0.1,1.0,1.0);
+    /// assert_eq!(result3,Err(AxialError::ReservedWordError("SOLENOID".to_string())));
+    /// ```
     pub fn add_thin_solenoid(
         &mut self,
         id: String,
@@ -101,6 +206,27 @@ impl AxialObject {
         self.objects.insert(id, new_solenoid);
         Ok(())
     }
+    /// Adds an instance of the coil solenoid primitive to the AxialSystem
+    ///
+    /// Provide a unique identifer for the primitive as a String
+    /// method checks if the identifier is allowed due to either
+    /// clashing with a reserved word or due to a primitive already
+    /// sharing the name.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// # use rustycoils::{AxialSystem,AxialError};
+    /// let mut axial = AxialSystem::default();
+    /// let result = axial.add_coil_solenoid("coil1".to_string(),1.0,10.0,0.1,0.0,1.0);
+    /// assert_eq!(result,Ok(()));
+    /// let result2 = axial.add_coil_solenoid("coil1".to_string(),2.0,10.0,0.1,1.0,1.0);
+    /// assert_eq!(result2,Err(AxialError::KeyDuplicateError("coil1".to_string())));
+    /// let result3 = axial.add_coil_solenoid("COIL".to_string(),2.0,10.0,0.1,1.0,1.0);
+    /// assert_eq!(result3,Err(AxialError::ReservedWordError("COIL".to_string())));
+    /// ```
     pub fn add_coil_solenoid(
         &mut self,
         id: String,
@@ -120,21 +246,50 @@ impl AxialObject {
         self.objects.insert(id, new_coil);
         Ok(())
     }
-    //removes an object matching the provided id.
-    pub fn remove(&mut self, id: String) -> Result<(), AxialError> {
+    /// Removes the primitive matching the provided id.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - &str containing the ID to remove
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use rustycoils::{AxialSystem,AxialError};
+    /// let mut axial = AxialSystem::default();
+    ///
+    /// let result = axial.add_loop("loop1".to_string(),1.0,0.0,1.0);
+    /// let result_wrong_id = axial.remove("loop2");
+    /// assert_eq!(result_wrong_id,Err(AxialError::KeyMissingError("loop2".to_string())));
+    /// ```
+    pub fn remove(&mut self, id: &str) -> Result<(), AxialError> {
         match _is_id_valid(&self.objects, &id) {
             AxialError::KeyDuplicateError(_) => {}
             error => return Err(error),
         }
-        self.objects.remove(&id);
+        self.objects.remove(id);
         Ok(())
     }
 }
 
 //view functions
-//
-impl AxialObject {
-    pub fn view_primitive(self, id: &str) -> Result<String, AxialError> {
+impl AxialSystem {
+    /// Returns the display string of the primitive.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - &str containing the ID to view
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use rustycoils::{AxialSystem,AxialError};
+    /// let mut axial = AxialSystem::default();
+    ///
+    /// let result = axial.add_loop("loop1".to_string(),1.0,0.0,1.0);
+    /// let result_wrong_id = axial.view("loop1");
+    /// ```
+    pub fn view(self, id: &str) -> Result<String, AxialError> {
         match _is_id_valid(&self.objects, id) {
             AxialError::KeyDuplicateError(_) => {}
             error => return Err(error),
@@ -152,9 +307,9 @@ mod test_view {
     use super::*;
     #[test]
     fn test_view_correct_id() -> Result<(), AxialError> {
-        let mut mycoil = AxialObject::default();
+        let mut mycoil = AxialSystem::default();
         let _res = mycoil.add_loop("loop1".to_string(), 0.0, 0.0, 0.0);
-        let string = mycoil.view_primitive("loop1")?;
+        let string = mycoil.view("loop1")?;
         assert_eq!(
             Primitives::IdealWire(IdealWire::new(0.0, 0.0, 0.0)).to_string(),
             string
@@ -163,9 +318,9 @@ mod test_view {
     }
     #[test]
     fn test_view_wrong_id() -> Result<(), AxialError> {
-        let mut mycoil = AxialObject::default();
+        let mut mycoil = AxialSystem::default();
         let _res = mycoil.add_loop("loop1".to_string(), 0.0, 0.0, 0.0);
-        let answer = mycoil.view_primitive("loop2");
+        let answer = mycoil.view("loop2");
         assert_eq!(
             answer,
             Err(AxialError::KeyMissingError("loop2".to_string()))
@@ -174,13 +329,46 @@ mod test_view {
     }
 }
 //transform functions
-impl AxialObject {
+impl AxialSystem {
+    /// Transforms the symmetry axis to point along the x axis
+    ///
+    /// i.e. converts the AxialSystems orientation to (1,0,0)
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use rustycoils::{AxialSystem,AxialError};
+    /// let mut axial = AxialSystem::default();
+    /// axial.transform_x();
+    /// ```
     pub fn transform_x(&mut self) {
         self.orientation = (1.0, 0.0, 0.0);
     }
+    /// Transforms the symmetry axis to point along the y axis
+    ///
+    /// i.e. converts the AxialSystems orientation to (0,1,0)
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use rustycoils::{AxialSystem,AxialError};
+    /// let mut axial = AxialSystem::default();
+    /// axial.transform_y();
+    /// ```
     pub fn transform_y(&mut self) {
         self.orientation = (0.0, 1.0, 0.0);
     }
+    /// Transforms the symmetry axis to point along the z axis
+    ///
+    /// i.e. converts the AxialSystems orientation to (0,0,1)
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use rustycoils::{AxialSystem,AxialError};
+    /// let mut axial = AxialSystem::default();
+    /// axial.transform_z();
+    /// ```
     pub fn transform_z(&mut self) {
         self.orientation = (0.0, 0.0, 1.0);
     }
@@ -190,7 +378,33 @@ impl AxialObject {
 //these functions allow the individual physical parameters of
 //underlying primitives to be modified.
 
-impl AxialObject {
+impl AxialSystem {
+    /// Modifies the radius of a given primitive/ set of primitives
+    ///
+    /// Can provide the ID of a single primitive or provide one
+    /// of the possible reserved keywords to modify a set of primitives
+    ///
+    /// *`LOOP` change radius of all loop primitives
+    /// *`ANNULAR` change radius of all annular primitives
+    /// *`SOLENOID` change radius of all solenoid primitives
+    /// *`COILS` change radius of all coil primitives
+    ///
+    /// # Arguments
+    ///
+    /// * `id` contains the ID of the primitive to modify
+    /// * `radius` new radius of the primitive
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use rustycoils::{AxialSystem,AxialError};
+    /// let mut axial = AxialSystem::default();
+    /// let res = axial.add_loop("loop1".to_string(),1.0,0.0,0.0);
+    /// let res = axial.modify_radius("loop1",2.0);
+    /// assert_eq!(res,Ok(()));
+    /// let res = axial.modify_radius("loop2",2.0);
+    /// assert_eq!(res,Err(AxialError::KeyMissingError("loop2".to_string())));
+    /// ```
     pub fn modify_radius(&mut self, id: &str, radius: f64) -> Result<(), AxialError> {
         //generate a list of the objects to be modified, and run through and modify their
         //radius via the set_radius() function
@@ -243,6 +457,31 @@ impl AxialObject {
         Ok(())
     }
 
+    /// Modifies the position of a given primitive/set of primitives relative to the AxialSystem
+    /// along the symmetry axis
+    ///
+    /// Can provide the ID of a single primitive or provide one
+    /// of the possible reserved keywords to modify a set of primitives
+    ///
+    /// *`LOOP` change radius of all loop primitives
+    /// *`ANNULAR` change radius of all annular primitives
+    /// *`SOLENOID` change radius of all solenoid primitives
+    /// *`COILS` change radius of all coil primitives
+    ///
+    /// # Arguments
+    ///
+    /// * `id` contains the ID of the primitive to modify
+    /// * `position` new position of the primitive
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use rustycoils::{AxialSystem,AxialError};
+    /// let mut axial = AxialSystem::default();
+    /// let res = axial.add_loop("loop1".to_string(),1.0,0.0,0.0);
+    /// let res = axial.modify_position("loop1",1.0);
+    /// assert_eq!(res,Ok(()));
+    /// ```
     pub fn modify_position(&mut self, id: &str, position: f64) -> Result<(), AxialError> {
         //generate a list of the objects to be modified, and run through and modify their
         //radius via the set_radius() function
@@ -295,6 +534,35 @@ impl AxialObject {
         Ok(())
     }
 
+    /// Modifies the length of a given primitive/set of primitives
+    ///
+    /// Can provide the ID of a single primitive or provide one
+    /// of the possible reserved keywords to modify a set of primitives
+    /// If the provided ID belongs to a primitive that does not possess
+    /// length as a parameter returns a AxialError::IncompatiblePrimitiveError
+    ///
+    /// *`LOOP` change radius of all loop primitives
+    /// *`ANNULAR` change radius of all annular primitives
+    /// *`SOLENOID` change radius of all solenoid primitives
+    /// *`COILS` change radius of all coil primitives
+    ///
+    /// # Arguments
+    ///
+    /// * `id` contains the ID of the primitive to modify
+    /// * `length` new position of the primitive
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use rustycoils::{AxialSystem,AxialError};
+    /// let mut axial = AxialSystem::default();
+    /// let res = axial.add_thin_solenoid("solenoid1".to_string(),1.0,10.0,0.0,0.0);
+    /// let res = axial.modify_length("solenoid1",5.0);
+    /// assert_eq!(res,Ok(()));
+    /// let res = axial.add_loop("loop1".to_string(),1.0,0.0,0.0);
+    /// let res = axial.modify_length("loop1",5.0);
+    /// assert_eq!(res,Err(AxialError::IncompatiblePrimitiveError("loop1".to_string(),"LOOP".to_string())));
+    /// ```
     pub fn modify_length(&mut self, id: &str, length: f64) -> Result<(), AxialError> {
         //generate a list of the objects to be modified, and run through and modify their
         //radius via the set_radius() function
@@ -353,6 +621,35 @@ impl AxialObject {
         }
         Ok(())
     }
+    /// Modifies the thickness of a given primitive/set of primitives
+    ///
+    /// Can provide the ID of a single primitive or provide one
+    /// of the possible reserved keywords to modify a set of primitives
+    /// If the provided ID belongs to a primitive that does not possess
+    /// length as a parameter returns a AxialError::IncompatiblePrimitiveError
+    ///
+    /// *`LOOP` change radius of all loop primitives
+    /// *`ANNULAR` change radius of all annular primitives
+    /// *`SOLENOID` change radius of all solenoid primitives
+    /// *`COILS` change radius of all coil primitives
+    ///
+    /// # Arguments
+    ///
+    /// * `id` contains the ID of the primitive to modify
+    /// * `thickness` new position of the primitive
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use rustycoils::{AxialSystem,AxialError};
+    /// let mut axial = AxialSystem::default();
+    /// let res = axial.add_annular("annular1".to_string(),1.0,1.0,0.0,0.0);
+    /// let res = axial.modify_thickness("annular1",5.0);
+    /// assert_eq!(res,Ok(()));
+    /// let res = axial.add_loop("loop1".to_string(),1.0,0.0,0.0);
+    /// let res = axial.modify_thickness("loop1",5.0);
+    /// assert_eq!(res,Err(AxialError::IncompatiblePrimitiveError("loop1".to_string(),"LOOP".to_string())));
+    /// ```
     pub fn modify_thickness(&mut self, id: &str, thickness: f64) -> Result<(), AxialError> {
         //generate a list of the objects to be modified, and run through and modify their
         //radius via the set_radius() function
@@ -411,6 +708,30 @@ impl AxialObject {
         }
         Ok(())
     }
+    /// Modifies the current of a given primitive/set of primitives
+    ///
+    /// Can provide the ID of a single primitive or provide one
+    /// of the possible reserved keywords to modify a set of primitives
+    ///
+    /// *`LOOP` change radius of all loop primitives
+    /// *`ANNULAR` change radius of all annular primitives
+    /// *`SOLENOID` change radius of all solenoid primitives
+    /// *`COILS` change radius of all coil primitives
+    ///
+    /// # Arguments
+    ///
+    /// * `id` contains the ID of the primitive to modify
+    /// * `thickness` new position of the primitive
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use rustycoils::{AxialSystem,AxialError};
+    /// let mut axial = AxialSystem::default();
+    /// let res = axial.add_annular("annular1".to_string(),1.0,1.0,0.0,0.0);
+    /// let res = axial.modify_current("annular1",5.0);
+    /// assert_eq!(res,Ok(()));
+    /// ```
     pub fn modify_current(&mut self, id: &str, current: f64) -> Result<(), AxialError> {
         //generate a list of the objects to be modified, and run through and modify their
         //radius via the set_radius() function
@@ -464,8 +785,8 @@ impl AxialObject {
     }
 }
 
-impl AxialObject {
-    pub fn get_field_in_frame(&self, (x, y, z): &(f64, f64, f64), tol: &f64) -> (f64, f64) {
+impl AxialSystem {
+    fn get_field_in_frame(&self, (x, y, z): &(f64, f64, f64), tol: &f64) -> (f64, f64) {
         let (z, r, _theta) =
             _convert_cartesian_to_axial((*x, *y, *z), self.origin, self.orientation);
         let mut field_z = 0.0;
@@ -477,12 +798,49 @@ impl AxialObject {
         }
         (field_z, field_r)
     }
+    /// Computes the magnetic field of the axial system
+    ///
+    /// Takes the position coordinates of the location for which the
+    /// magentic field is desired. These coordinates are in the global
+    /// space and not relative to the axial system.
+    ///
+    /// # Arguments
+    /// * `(x,y,z)` tuple containing the x,y,z coordinates.
+    /// * `tol` the tolerance at which the series expansion shuold terminate.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use rustycoils::{AxialSystem,AxialError};
+    /// let mut axial = AxialSystem::default();
+    /// let res = axial.add_loop("loop1".to_string(),1.0,0.0,1.0);
+    /// let magnetic_field = axial.get_field(&(0.0,0.0,0.0),&1e-16);
+    /// ```
     pub fn get_field(&self, (x, y, z): &(f64, f64, f64), tol: &f64) -> (f64, f64, f64) {
         let (_z, _r, theta) =
             _convert_cartesian_to_axial((*x, *y, *z), self.origin, self.orientation);
         let (field_z, field_r) = self.get_field_in_frame(&(*x, *y, *z), tol);
         _convert_axial_to_cartesian((field_z, field_r, theta), self.origin, self.orientation)
     }
+    /// Computes the magnetic field of the axial system in relative frame
+    ///
+    /// Takes the position coordinates of the location for which the
+    /// magentic field is desired. These coordinates are in the global
+    /// space and not relative to the axial system.
+    ///
+    /// # Arguments
+    /// * `z` axial position relative to AxialSystem
+    /// * `r` radial position relative to AxialSystem
+    /// * `tol` the tolerance at which the series expansion shuold terminate.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use rustycoils::{AxialSystem,AxialError};
+    /// let mut axial = AxialSystem::default();
+    /// let res = axial.add_loop("loop1".to_string(),1.0,0.0,1.0);
+    /// let magnetic_field = axial.get_field_axial(&2.0,&0.1,&1e-16);
+    /// ```
     pub fn get_field_axial(&self, z: &f64, r: &f64, tol: &f64) -> (f64, f64) {
         let mut field_z = 0.0;
         let mut field_r = 0.0;
@@ -526,10 +884,20 @@ impl Primitives {
     }
 }
 #[derive(Debug, PartialEq)]
+/// Errors produced by interacting with AxialSystem
 pub enum AxialError {
+    /// Error produced when provide an ID which is already used
     KeyDuplicateError(String),
+    /// Error produced when wrong key provided to modify functions
     KeyMissingError(String),
+    /// Error produced when provide an ID which matches one of the reserved words
+    /// *`LOOP`
+    /// *`ANNULAR`
+    /// *`SOLENOID`
+    /// *`COIL`
+    /// *`*`
     ReservedWordError(String),
+    /// Error produced when attempt to modify a primitive with wrong physical parameter.
     IncompatiblePrimitiveError(String, String),
 }
 impl fmt::Display for AxialError {
@@ -550,6 +918,8 @@ impl fmt::Display for AxialError {
         }
     }
 }
+impl Error for AxialError {}
+
 const RESERVED_WORDS: [&str; 5] = ["*", "COIL", "LOOP", "ANNULAR", "SOLENOID"];
 //checks is the provided ID is allowed. Checks that the given
 //string is not one the of reservered words and that the hashmap
@@ -749,7 +1119,7 @@ mod test_add_functions {
 
     #[test]
     fn test_add_coil() {
-        let mut myaxial = AxialObject::default();
+        let mut myaxial = AxialSystem::default();
         let radius = 1.0;
         let x0 = 1.0;
         let current = 1.0;
@@ -762,26 +1132,26 @@ mod test_add_functions {
     }
     #[test]
     fn test_add_and_remove() {
-        let mut myaxial = AxialObject::default();
+        let mut myaxial = AxialSystem::default();
         let radius = 1.0;
         let x0 = 1.0;
         let current = 1.0;
         let res = myaxial.add_loop("loop1".to_string(), radius, x0, current);
         assert_eq!(res, Ok(()));
-        let res = myaxial.remove("loop1".to_string());
+        let res = myaxial.remove("loop1");
         assert_eq!(res, Ok(()));
     }
     #[test]
     fn test_add_and_remove_reserved() {
-        let mut myaxial = AxialObject::default();
+        let mut myaxial = AxialSystem::default();
         let radius = 1.0;
         let x0 = 1.0;
         let current = 1.0;
         let res = myaxial.add_loop("loop1".to_string(), radius, x0, current);
         assert_eq!(res, Ok(()));
-        let res = myaxial.remove("loop2".to_string());
+        let res = myaxial.remove("loop2");
         assert_eq!(res, Err(AxialError::KeyMissingError("loop2".to_string())));
-        let res = myaxial.remove("*".to_string());
+        let res = myaxial.remove("*");
         assert_eq!(res, Err(AxialError::ReservedWordError("*".to_string())));
     }
 }
@@ -791,7 +1161,7 @@ mod test_modify_functions {
     use super::*;
     #[test]
     fn test_modify_length() {
-        let mut myaxial = AxialObject::default();
+        let mut myaxial = AxialSystem::default();
         let _res = myaxial.add_loop("LOOP1".to_string(), 1.0, 1.0, 1.0);
 
         let res = myaxial.modify_radius("LOOP1", 2.0);
@@ -809,7 +1179,7 @@ mod test_modify_functions {
     }
     #[test]
     fn test_modify_coil() {
-        let mut myaxial = AxialObject::default();
+        let mut myaxial = AxialSystem::default();
         let _res = myaxial.add_coil_solenoid("coil1".to_string(), 1.0, 1.0, 1.0, 1.0, 1.0);
 
         let res = myaxial.modify_thickness("coil1", 2.0);
@@ -841,7 +1211,7 @@ mod test_modify_functions {
     }
     #[test]
     fn test_modify_loop() {
-        let mut myaxial = AxialObject::default();
+        let mut myaxial = AxialSystem::default();
         let _res = myaxial.add_loop("loop1".to_string(), 1.0, 1.0, 1.0);
 
         let res = myaxial.modify_thickness("loop1", 2.0);
@@ -897,7 +1267,7 @@ mod test_modify_functions {
     }
     #[test]
     fn test_modify_solenoid() {
-        let mut myaxial = AxialObject::default();
+        let mut myaxial = AxialSystem::default();
         let _res = myaxial.add_thin_solenoid("solenoid1".to_string(), 1.0, 1.0, 1.0, 1.0);
 
         let res = myaxial.modify_length("solenoid1", 2.0);
@@ -954,7 +1324,7 @@ mod test_modify_functions {
 
     #[test]
     fn test_modify_annular() {
-        let mut myaxial = AxialObject::default();
+        let mut myaxial = AxialSystem::default();
         let _res = myaxial.add_annular("annular1".to_string(), 1.0, 1.0, 1.0, 1.0);
 
         let res = myaxial.modify_thickness("annular1", 2.0);
