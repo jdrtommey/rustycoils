@@ -1,12 +1,12 @@
-### Solenoid
+# RustyCoils
 [![Actions Status](https://github.com/jdrtommey/solenoid/workflows/Test/badge.svg)](https://github.com/jdrtommey/solenoid/actions)
 [![Actions Status](https://github.com/jdrtommey/solenoid/workflows/LintFormat/badge.svg)](https://github.com/jdrtommey/solenoid/actions)
 
-This small package impliments a numerical solution for finding the off-axis magnetic field due to systems with cyclindrical symmetry, i.e. coils and solenoids. The exact method used is shown in https://ieeexplore.ieee.org/document/760416. 
-Analytic solutions exist for some of these systems based on elliptical functions however these are numerically slower to impliment, and provided the region on interest is sufficiently close to the middle of the symmetry axis are no more accurate.
-For cases where the function will be called many times within a larger function a faster solution is desired.
+Implimentation of a numerical method for finding the off-axis magnetic field due to current systems with cyclindrical symmetry, i.e. coils and solenoids. The exact method used is shown in https://ieeexplore.ieee.org/document/760416. 
+Analytical solutions exist for simple systems based on elliptical functions however these are numerically slower to impliment, and provided the region on interest is sufficiently close to the middle of the symmetry axis are no more accurate.
+For cases where the function will be called many times within a larger function the quickest possible implimentation is desirable.
 This package is written in Rust to take advantage of its speed and (eventually) concurrency, but really it's because I wanted an excuse to use Rust for a project.
-There is a python wrapper using Py03 in a seperate repository.
+There is (eventually) a python wrapper using Py03 in a seperate repository.
 To quote the paper this method is taken from the algorithim is designed to be 'fast enough to be used interactivley and compact enough to be embedded as a module in other codes'. 
 
 The algorithim makes use of primitive shapes with cylindrical symmetry:
@@ -15,11 +15,19 @@ The algorithim makes use of primitive shapes with cylindrical symmetry:
 * Thin solenoids 
 * Thick solenoids (Coils)
 
+## Warning
+
+I put this together very quickly and it is still very much a prototype. Ive tested the case of an ideal wire loop which has a simple analytical solution
+and this appears to be working (test script in tests/idealloop.rs) but have not tested the other primitives yet, if anyone finds, and try and use, this package in its current form please check the solutions against another method before attempting to use it for anything that matters.
+
+
+# Usage 
+
 The crate exposes a single struct 
 ```rust
 
 //object containing primitives sharing a symmetry axis
-mycoil = AxialObject::default(); 
+mycoil = AxialSystem::default(); 
 ```
 which defines a symmetry axis. Currently this symmetry axis can only be defined along the three cartesian axes (defaults to x). Eventually this will be arbitrary. 
 
@@ -31,7 +39,7 @@ mycoil.transform_z();
 
 ```
 
-Individual primitive coils can be added to the AxialObject with a unique UTF-8 identifier.
+Individual primitive coils can be added to the AxialSystem with a unique UTF-8 identifier.
 
 ```rust
 //define physical parameters
@@ -40,23 +48,23 @@ let thickness = 0.1;
 let current = 1.0;
 let length = 5.0;
 let position = 2.0; //position along the symmetry axis
-mycoil.add_loop("loop1",&radius,&position,&current);
-mycoil.add_annular("foo",&radius,&thickness,&position,&current);
-mycoil.add_solenoid("bar",&radius,&length,&position,&length);
-mycoil.add_coil("coil1",&radius,&length,&thickness,&position,&current);
+mycoil.add_loop("loop1",radius,position,current);
+mycoil.add_annular("foo",radius,thickness,position,current);
+mycoil.add_solenoid("bar",radius,length,position,length);
+mycoil.add_coil("coil1",radius,length,thickness,position,current);
 ```
 The parameters controlling these primitives can be be modified by using the functions 
 ```rust
 //change radius of the current loop
-mycoil.modify_radius("loop1",&6.0);  "loop1"
+mycoil.modify_radius("loop1",6.0);  "loop1"
 //change length of the solenoid "bar"
-mycoil.modify_length("bar",&3.0); 
+mycoil.modify_length("bar",3.0); 
 //change length of the coil "coil1"
-mycoil.modify_position("coil1",&3.0); 
+mycoil.modify_position("coil1",3.0); 
 //change thickness of the annular "foo"
-mycoil.modify_thickness("foo",&1.0); 
+mycoil.modify_thickness("foo",1.0); 
 //change current of the annular "foo"
-mycoil.modify_current("foo",&1.0); 
+mycoil.modify_current("foo",1.0); 
 ```
 
 These functions accept keywords to modify multiple primitives at once. Note these keywords can not be used as identifiers for primitives.
@@ -72,15 +80,15 @@ These functions accept keywords to modify multiple primitives at once. Note thes
 
 ```rust
 //changes all the current of all primitives
-mycoil.modify_current("*",&6.0); 
+mycoil.modify_current("*",6.0); 
 //changes all the current of all current loop primitives
-mycoil.modify_current("LOOP",&6.0); 
+mycoil.modify_current("LOOP",6.0); 
 //changes all the radius of all annular primitives
-mycoil.modify_radius("ANNULAR",&6.0);  
+mycoil.modify_radius("ANNULAR",6.0);  
 //changes all the length of all solenoid primitives
-mycoil.modify_length("SOLENOID",&6.0);
+mycoil.modify_length("SOLENOID",6.0);
 //changes all the length of all coil primitives
-mycoil.modify_thickness("COIL",&6.0);  
+mycoil.modify_thickness("COIL",6.0);  
 ```
 
 The magnetic field in each of the cartesian directions can be computed from 
