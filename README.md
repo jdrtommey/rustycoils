@@ -1,24 +1,28 @@
 # RustyCoils
 [![Actions Status](https://github.com/jdrtommey/solenoid/workflows/Test/badge.svg)](https://github.com/jdrtommey/solenoid/actions)
 [![Actions Status](https://github.com/jdrtommey/solenoid/workflows/LintFormat/badge.svg)](https://github.com/jdrtommey/solenoid/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Implimentation of a numerical method for finding the off-axis magnetic field due to current systems with cyclindrical symmetry, i.e. coils and solenoids. The exact method used is shown in https://ieeexplore.ieee.org/document/760416. 
-Analytical solutions exist for simple systems based on elliptical functions however these are numerically slower to impliment, and provided the region on interest is sufficiently close to the middle of the symmetry axis are no more accurate.
-For cases where the function will be called many times within a larger function the quickest possible implimentation is desirable.
-This package is written in Rust to take advantage of its speed and (eventually) concurrency, but really it's because I wanted an excuse to use Rust for a project.
-There is (eventually) a python wrapper using Py03 in a seperate repository.
-To quote the paper this method is taken from the algorithim is designed to be 'fast enough to be used interactivley and compact enough to be embedded as a module in other codes'. 
+This crate is an implementation of the numerical method for finding the off-axis magnetic field due to current systems with cyclindrical symmetry, i.e. coils and solenoids, presented in https://ieeexplore.ieee.org/document/760416 by R.H. Jackson. 
+Analytical solutions exist for simple systems based on elliptical integrals, however these are numerically slower to implement. Further, provided that the region of interest is sufficiently close to the symmetry axis, no more accurate. Quoting the paper, this algorithm is designed to be "fast enough to be used interactively and compact enough to be embedded as a module in other codes".
 
-The algorithim makes use of primitive shapes with cylindrical symmetry:
+This situation arises in simulating beams of atoms in Rydberg states in coherent quantum optics experiments moving in homogenous magentic fields provided by either solenoids or systems of coils. At each time-step the magnetic field needs to be calculated for a distribution of atoms close to the center of the magnetic field. The small deviations due to a physical implimentation can lead to small forces or Zeeman energy shifts. 
+Similar experiments such as Zeeman slowers purposely make use of inhomogenous magnetic fields to impart forces. I thought this could be useful for someone else as an alternative to the elliptical integral methods I could find. 
+
+This package is written in Rust to take advantage of its speed and (eventually) parallelisation abilities, but really it's because I wanted an excuse to use Rust for a project, and I plan on providing a Python wrapper using pyo3 in a seperated repository.
+ 
+
+The algorithm makes use of primitive shapes with cylindrical symmetry:
+
 * Ideal current loops
 * Annular disks
 * Thin solenoids 
 * Thick solenoids (Coils)
 
-## Warning
+# Warning
 
-I put this together very quickly and it is still very much a prototype. Ive tested the case of an ideal wire loop which has a simple analytical solution
-and this appears to be working (test script in tests/idealloop.rs) but have not tested the other primitives yet, if anyone finds, and try and use, this package in its current form please check the solutions against another method before attempting to use it for anything that matters.
+I put this together very quickly and it is still very much a prototype. I've tested the case of an ideal wire loop which has a simple analytical solution
+and this appears to be working (test script in tests/idealloop.rs) but have not tested the other primitives yet. If anyone finds, and try and use, this package in its current form please check the solutions against another method before attempting to use it for anything that matters.
 
 
 # Usage 
@@ -97,7 +101,10 @@ The magnetic field in each of the cartesian directions can be computed from
 ```
 where 1e-10 is the tolerance to stop including additional terms in the power expansion.
 
-##### TO-DO
+# TO-DO
 
-- Arbitrary symmetry direction axes
-- Parallel the computation within AxialObjects and on collections of them.
+Things I plan on implementing soon
+
+- Tests of Annular and Coil primitives
+- Arbitrary orientation of symmetry axes
+- Parallelise the field computation using Rayon
