@@ -1,4 +1,4 @@
-### Solenoid
+### RustyCoils
 [![Actions Status](https://github.com/jdrtommey/solenoid/workflows/Test/badge.svg)](https://github.com/jdrtommey/solenoid/actions)
 [![Actions Status](https://github.com/jdrtommey/solenoid/workflows/LintFormat/badge.svg)](https://github.com/jdrtommey/solenoid/actions)
 
