@@ -1,3 +1,5 @@
+//! # RustyCoils
+//!
 //! Off-axis magnetic fields for systems with cyclindrical symmetry.  
 //!
 //! This crate impliments a fast approximate method for finding off axis magnetic fields
