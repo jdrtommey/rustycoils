@@ -856,7 +856,7 @@ impl AxialSystem {
 //compute functions
 //
 //
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 enum Primitives {
     IdealWire(IdealWire),
     ThinSolenoid(ThinSolenoid),

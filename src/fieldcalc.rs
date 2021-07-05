@@ -100,7 +100,7 @@ pub mod primitives {
         (1.0 / f64::powi(*norm, *n as i32)) * b_deriv_x
     }
     // IDEAL LOOP PRIMITIVE.
-    #[derive(Debug, PartialEq, Clone)]
+    #[derive(Debug, PartialEq, Clone, Copy)]
     pub struct IdealWire {
         radius: f64,  //radius of the wire loop
         current: f64, //current flowing in the wire
@@ -150,7 +150,7 @@ pub mod primitives {
     }
     //THIN ANNULAR PRIMITIVE
 
-    #[derive(Debug, PartialEq, Clone)]
+    #[derive(Debug, PartialEq, Clone, Copy)]
     pub struct ThinAnnular {
         radius: f64,          //units of m
         current_density: f64, //units of A/m
@@ -222,7 +222,7 @@ pub mod primitives {
     }
 
     // ThinSolenoid primitive.
-    #[derive(Debug, PartialEq, Clone)]
+    #[derive(Debug, PartialEq, Clone, Copy)]
     pub struct ThinSolenoid {
         radius: f64,
         current_density: f64,
@@ -292,7 +292,7 @@ pub mod primitives {
 
     // coil primitive.
 
-    #[derive(Debug, PartialEq, Clone)]
+    #[derive(Debug, PartialEq, Clone, Copy)]
     pub struct CoilSolenoid {
         radius: f64,
         current_density: f64,
