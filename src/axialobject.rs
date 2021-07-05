@@ -16,7 +16,7 @@ use std::fmt;
 //get_field((x,y,z)) this function calls the magnetic field due to all primatives in
 //the class and returns the sum.
 //
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 /// Structure which defines a system of primitives with a shared symmetry axis.
 ///
 /// This allows for large number of primitive shapes to be combined to generate a more
@@ -856,7 +856,7 @@ impl AxialSystem {
 //compute functions
 //
 //
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 enum Primitives {
     IdealWire(IdealWire),
     ThinSolenoid(ThinSolenoid),
