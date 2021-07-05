@@ -20,4 +20,6 @@
 #[warn(missing_docs)]
 mod axialobject;
 mod fieldcalc;
+#[cfg(feature = "rayon")]
+pub mod rayon;
 pub use axialobject::{AxialError, AxialSystem};

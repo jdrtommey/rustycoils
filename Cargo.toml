@@ -12,6 +12,7 @@ license = "LICENSE"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+rayon = {version = "1.5",optional=true}
 
 [dev-dependencies]
 GSL = "*"
