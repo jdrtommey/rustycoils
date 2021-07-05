@@ -289,14 +289,14 @@ impl AxialSystem {
     /// let result = axial.add_loop("loop1".to_string(),1.0,0.0,1.0);
     /// let result_wrong_id = axial.view("loop1");
     /// ```
-    pub fn view(self, id: &str) -> Result<String, AxialError> {
+    pub fn view(&self, id: &str) -> Result<String, AxialError> {
         match _is_id_valid(&self.objects, id) {
             AxialError::KeyDuplicateError(_) => {}
             error => return Err(error),
         }
         let primitive = self.objects.get(id);
         if let Some(primitive) = primitive {
-            Ok(primitive.to_string().clone())
+            Ok(primitive.to_string())
         } else {
             Err(AxialError::KeyMissingError(id.to_string()))
         }
