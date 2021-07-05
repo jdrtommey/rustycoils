@@ -296,7 +296,7 @@ impl AxialSystem {
         }
         let primitive = self.objects.get(id);
         if let Some(primitive) = primitive {
-            Ok(primitive.to_string())
+            Ok(primitive.to_string().clone())
         } else {
             Err(AxialError::KeyMissingError(id.to_string()))
         }
