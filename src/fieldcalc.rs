@@ -48,11 +48,11 @@ pub mod primitives {
             }
             answer
         }
-        fn get_fields(&self, z: &f64, r: &f64, tol: &f64) -> (f64, f64) {
-            (
+        fn get_fields(&self, z: &f64, r: &f64, tol: &f64) -> [f64; 2] {
+            [
                 self.get_axial_field(z, r, tol),
                 self.get_radial_field(z, r, tol),
-            )
+            ]
         }
     }
 
@@ -154,16 +154,16 @@ pub mod primitives {
     pub struct ThinAnnular {
         radius: f64,          //units of m
         current_density: f64, //units of A/m
-        z0: f64,              //units of m
         thickness: f64,       //units of m
+        z0: f64,              //units of m
         max_depth: u32,       //10 hardwired terms so depth of 5
     }
     impl ThinAnnular {
-        pub fn new(radius: f64, thickness: f64, current_density: f64, z0: f64) -> ThinAnnular {
+        pub fn new(radius: f64, thickness: f64, current: f64, z0: f64) -> ThinAnnular {
             ThinAnnular {
                 radius,
+                current_density: current / thickness,
                 thickness,
-                current_density,
                 z0,
                 max_depth: 5,
             }
@@ -193,22 +193,29 @@ pub mod primitives {
             let b0 = MU0 * self.current_density / 2.0;
             // if zeroth derivative return the on axis field value Eq.32 in reference paper.
             // else compute the polynomials.
-            if *n == 0 {
-                let prefactor = MU0 * self.current_density / 2.0;
-                let x_factor =
-                    (1.0 / f64::sqrt(1.0 + x * x)) - f64::ln(1.0 + f64::sqrt(1.0 + x * x));
-                let xi_factor =
-                    (1.0 / f64::sqrt(1.0 + xi * xi)) - f64::ln(1.0 + f64::sqrt(1.0 + xi * xi));
-                let rho_factor = f64::ln(rho);
-                return prefactor * (x_factor - xi_factor - rho_factor);
+            match n {
+                0 => return _zeroth_order_annular(x, xi, rho, self.current_density),
+                _ => {
+                    let term1 = _get_annular_normalized_b(n, &x, &self.radius);
+                    let term2 = _get_annular_normalized_b(n, &xi, &(self.radius + self.thickness));
+                    return b0 * (term1 - term2);
+                }
             }
-            let term1 = _get_annular_normalized_b(n, &x, &self.radius);
-            let term2 = _get_annular_normalized_b(n, &xi, &(self.radius + self.thickness));
-            b0 * (term1 - term2)
         }
         fn get_max_depth(&self) -> u32 {
             self.max_depth
         }
+    }
+    // computes Eq. 32
+    fn _zeroth_order_annular(x: f64, xi: f64, rho: f64, current_density: f64) -> f64 {
+        let prefactor = MU0 * current_density / 2.0;
+        let b_factor = |i: f64| -> f64 {
+            1.0 / f64::sqrt(1.0 + i * i) - f64::ln(1.0 + f64::sqrt(1.0 + i * i))
+        };
+        let x_factor = b_factor(x);
+        let xi_factor = b_factor(xi);
+        let rho_factor = f64::ln(rho);
+        prefactor * (x_factor - xi_factor + rho_factor)
     }
 
     impl fmt::Display for ThinAnnular {
@@ -231,10 +238,10 @@ pub mod primitives {
         max_depth: u32,
     }
     impl ThinSolenoid {
-        pub fn new(radius: f64, length: f64, current_density: f64, z0: f64) -> ThinSolenoid {
+        pub fn new(radius: f64, length: f64, current: f64, z0: f64) -> ThinSolenoid {
             ThinSolenoid {
                 radius,
-                current_density,
+                current_density: current / length,
                 length,
                 z0,
                 max_depth: 14,
@@ -306,12 +313,12 @@ pub mod primitives {
             radius: f64,
             length: f64,
             thickness: f64,
-            current_density: f64,
+            current: f64,
             z0: f64,
         ) -> CoilSolenoid {
             CoilSolenoid {
                 radius,
-                current_density,
+                current_density: current / (thickness * length),
                 thickness,
                 length,
                 z0,
@@ -451,7 +458,7 @@ pub mod primitives {
         // B/MU0 = 2/sqrt(5) - (2-4)/sqrt(5) = 4/sqrt(5)
         #[test]
         fn test_order_0() {
-            let current = 2.0;
+            let current = 4.0;
             let z = 1.0;
             let z0 = 0.0;
             let length = 2.0;
@@ -468,7 +475,7 @@ pub mod primitives {
         // 1/((5)^2.5) - 1/((5)^2.5) = 0.0
         #[test]
         fn test_order_1() {
-            let current = 2.0;
+            let current = 4.0;
             let z = 1.0;
             let z0 = 0.0;
             let length = 2.0;
@@ -486,7 +493,7 @@ pub mod primitives {
         // 1/(0.25) * (-6/5^2.5 - 6/5^2.5) = -48/5^2.5
         #[test]
         fn test_order_2() {
-            let current = 2.0;
+            let current = 4.0;
             let z = 1.0;
             let z0 = 0.0;
             let length = 2.0;
@@ -497,7 +504,7 @@ pub mod primitives {
         }
         #[test]
         fn test_order_3() {
-            let current = 2.0;
+            let current = 4.0;
             let z = 1.0;
             let z0 = 0.0;
             let length = 2.0;
@@ -508,7 +515,7 @@ pub mod primitives {
         }
         #[test]
         fn test_order_4() {
-            let current = 2.0;
+            let current = 4.0;
             let z = 1.0;
             let z0 = 0.0;
             let length = 2.0;
@@ -530,7 +537,7 @@ pub mod primitives {
         }
         #[test]
         fn test_on_axis_field() {
-            let current = 2.0;
+            let current = 4.0;
             let radius = 0.5;
             let length = 2.0;
             let z = 1.0;
@@ -539,7 +546,7 @@ pub mod primitives {
 
             let x = (z - solenoid.z0) / solenoid.radius;
             let eta = solenoid.length / solenoid.radius;
-            let ana_answer = analytical(current, x, eta);
+            let ana_answer = analytical(current / length, x, eta);
             assert_eq!(ana_answer, solenoid.get_axial_field(&z, &0.0, &1e-6));
         }
     }
@@ -549,14 +556,15 @@ pub mod primitives {
         // To test the thin annular derivative function have hand computed the expressions up to
         // order 5.
 
-        //the zeroth order is analytically given in Eq.32.
+        // the zeroth order is analytically given in Eq.32. ERRATA. paper shows - ln(rho) when its
+        // positive.
         // [MU0*J/2]*( 1/(sqrt(1+x*x)) - ln(1+sqrt(1+x*x)) + ln(1+sqrt(1+xi*xi)) -
-        // 1/(sqrt(1+xi*xi)))
+        // 1/(sqrt(1+xi*xi)) + ln(rho))
         // assuming z = 1.0, z0 = 0.0, radius = 1.0, thickness=1.0,J=1
         // x = (z -z0)/radius => x = 1.0
         // rho = (radius+thickness)/radius => 2.0
         // xi = (x/rho) => 0.5
-        // B0/MU0 = 1/2 *((1/sqrt(2) - ln(1+sqrt(2)) - 1/sqrt(1.25) + ln(1+sqrt(1.25)) - ln(2) ) =
+        // B0/MU0 = 1/2 *((1/sqrt(2) - ln(1+sqrt(2)) - 1/sqrt(1.25) + ln(1+sqrt(1.25)) + ln(2) ) =
         // -0.5056764413
         #[test]
         fn annular_disk_order_0() {
@@ -567,7 +575,7 @@ pub mod primitives {
             let z = 1.0;
             let annular = ThinAnnular::new(radius, thickness, current_density, z0);
             let answer = annular.get_nth_derivative(&0, &z);
-            let error = f64::abs(answer / MU0 - (-0.5056764413));
+            let error = f64::abs(answer / MU0 - (0.18747073917294));
             assert!(error < 1e-9);
         }
         //the first order can be computed from the polynomial experssions given in Eq.36 using
