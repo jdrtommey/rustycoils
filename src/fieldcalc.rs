@@ -154,16 +154,16 @@ pub mod primitives {
     pub struct ThinAnnular {
         radius: f64,          //units of m
         current_density: f64, //units of A/m
-        z0: f64,              //units of m
         thickness: f64,       //units of m
+        z0: f64,              //units of m
         max_depth: u32,       //10 hardwired terms so depth of 5
     }
     impl ThinAnnular {
-        pub fn new(radius: f64, thickness: f64, current_density: f64, z0: f64) -> ThinAnnular {
+        pub fn new(radius: f64, thickness: f64, current: f64, z0: f64) -> ThinAnnular {
             ThinAnnular {
                 radius,
+                current_density: current / thickness,
                 thickness,
-                current_density,
                 z0,
                 max_depth: 5,
             }
@@ -231,10 +231,10 @@ pub mod primitives {
         max_depth: u32,
     }
     impl ThinSolenoid {
-        pub fn new(radius: f64, length: f64, current_density: f64, z0: f64) -> ThinSolenoid {
+        pub fn new(radius: f64, length: f64, current: f64, z0: f64) -> ThinSolenoid {
             ThinSolenoid {
                 radius,
-                current_density,
+                current_density: current / length,
                 length,
                 z0,
                 max_depth: 14,
@@ -306,12 +306,12 @@ pub mod primitives {
             radius: f64,
             length: f64,
             thickness: f64,
-            current_density: f64,
+            current: f64,
             z0: f64,
         ) -> CoilSolenoid {
             CoilSolenoid {
                 radius,
-                current_density,
+                current_density: current / (thickness * length),
                 thickness,
                 length,
                 z0,
