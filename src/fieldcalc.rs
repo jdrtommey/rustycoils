@@ -215,7 +215,7 @@ pub mod primitives {
         let x_factor = b_factor(x);
         let xi_factor = b_factor(xi);
         let rho_factor = f64::ln(rho);
-        prefactor * (x_factor - xi_factor - rho_factor)
+        prefactor * (x_factor - xi_factor + rho_factor)
     }
 
     impl fmt::Display for ThinAnnular {
