@@ -193,22 +193,29 @@ pub mod primitives {
             let b0 = MU0 * self.current_density / 2.0;
             // if zeroth derivative return the on axis field value Eq.32 in reference paper.
             // else compute the polynomials.
-            if *n == 0 {
-                let prefactor = MU0 * self.current_density / 2.0;
-                let x_factor =
-                    (1.0 / f64::sqrt(1.0 + x * x)) - f64::ln(1.0 + f64::sqrt(1.0 + x * x));
-                let xi_factor =
-                    (1.0 / f64::sqrt(1.0 + xi * xi)) - f64::ln(1.0 + f64::sqrt(1.0 + xi * xi));
-                let rho_factor = f64::ln(rho);
-                return prefactor * (x_factor - xi_factor - rho_factor);
+            match n {
+                0 => return _zeroth_order_annular(x, xi, rho, self.current_density),
+                _ => {
+                    let term1 = _get_annular_normalized_b(n, &x, &self.radius);
+                    let term2 = _get_annular_normalized_b(n, &xi, &(self.radius + self.thickness));
+                    return b0 * (term1 - term2);
+                }
             }
-            let term1 = _get_annular_normalized_b(n, &x, &self.radius);
-            let term2 = _get_annular_normalized_b(n, &xi, &(self.radius + self.thickness));
-            b0 * (term1 - term2)
         }
         fn get_max_depth(&self) -> u32 {
             self.max_depth
         }
+    }
+    // computes Eq. 32
+    fn _zeroth_order_annular(x: f64, xi: f64, rho: f64, current_density: f64) -> f64 {
+        let prefactor = MU0 * current_density / 2.0;
+        let b_factor = |i: f64| -> f64 {
+            1.0 / f64::sqrt(1.0 + i * i) - f64::ln(1.0 + f64::sqrt(1.0 + i * i))
+        };
+        let x_factor = b_factor(x);
+        let xi_factor = b_factor(xi);
+        let rho_factor = f64::ln(rho);
+        prefactor * (x_factor - xi_factor - rho_factor)
     }
 
     impl fmt::Display for ThinAnnular {
@@ -451,7 +458,7 @@ pub mod primitives {
         // B/MU0 = 2/sqrt(5) - (2-4)/sqrt(5) = 4/sqrt(5)
         #[test]
         fn test_order_0() {
-            let current = 2.0;
+            let current = 4.0;
             let z = 1.0;
             let z0 = 0.0;
             let length = 2.0;
@@ -468,7 +475,7 @@ pub mod primitives {
         // 1/((5)^2.5) - 1/((5)^2.5) = 0.0
         #[test]
         fn test_order_1() {
-            let current = 2.0;
+            let current = 4.0;
             let z = 1.0;
             let z0 = 0.0;
             let length = 2.0;
@@ -486,7 +493,7 @@ pub mod primitives {
         // 1/(0.25) * (-6/5^2.5 - 6/5^2.5) = -48/5^2.5
         #[test]
         fn test_order_2() {
-            let current = 2.0;
+            let current = 4.0;
             let z = 1.0;
             let z0 = 0.0;
             let length = 2.0;
@@ -497,7 +504,7 @@ pub mod primitives {
         }
         #[test]
         fn test_order_3() {
-            let current = 2.0;
+            let current = 4.0;
             let z = 1.0;
             let z0 = 0.0;
             let length = 2.0;
@@ -508,7 +515,7 @@ pub mod primitives {
         }
         #[test]
         fn test_order_4() {
-            let current = 2.0;
+            let current = 4.0;
             let z = 1.0;
             let z0 = 0.0;
             let length = 2.0;
@@ -530,7 +537,7 @@ pub mod primitives {
         }
         #[test]
         fn test_on_axis_field() {
-            let current = 2.0;
+            let current = 4.0;
             let radius = 0.5;
             let length = 2.0;
             let z = 1.0;
@@ -539,7 +546,7 @@ pub mod primitives {
 
             let x = (z - solenoid.z0) / solenoid.radius;
             let eta = solenoid.length / solenoid.radius;
-            let ana_answer = analytical(current, x, eta);
+            let ana_answer = analytical(current / length, x, eta);
             assert_eq!(ana_answer, solenoid.get_axial_field(&z, &0.0, &1e-6));
         }
     }
