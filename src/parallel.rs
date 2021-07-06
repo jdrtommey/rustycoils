@@ -16,7 +16,17 @@ pub fn get_b_parallel(
         .map(|i| axialsystem.get_field(&i, &tol));
     fields.collect()
 }
-
+// added for benchmarking
+pub fn get_b_seq(
+    axialsystem: &AxialSystem,
+    positions: Vec<(f64, f64, f64)>,
+    tol: f64,
+) -> Vec<(f64, f64, f64)> {
+    let fields = positions
+        .into_iter()
+        .map(|i| axialsystem.get_field(&i, &tol));
+    fields.collect()
+}
 #[cfg(test)]
 mod paralell_test {
     use super::*;
