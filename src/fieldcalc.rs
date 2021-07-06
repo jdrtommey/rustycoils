@@ -556,14 +556,15 @@ pub mod primitives {
         // To test the thin annular derivative function have hand computed the expressions up to
         // order 5.
 
-        //the zeroth order is analytically given in Eq.32.
+        // the zeroth order is analytically given in Eq.32. ERRATA. paper shows - ln(rho) when its
+        // positive.
         // [MU0*J/2]*( 1/(sqrt(1+x*x)) - ln(1+sqrt(1+x*x)) + ln(1+sqrt(1+xi*xi)) -
-        // 1/(sqrt(1+xi*xi)))
+        // 1/(sqrt(1+xi*xi)) + ln(rho))
         // assuming z = 1.0, z0 = 0.0, radius = 1.0, thickness=1.0,J=1
         // x = (z -z0)/radius => x = 1.0
         // rho = (radius+thickness)/radius => 2.0
         // xi = (x/rho) => 0.5
-        // B0/MU0 = 1/2 *((1/sqrt(2) - ln(1+sqrt(2)) - 1/sqrt(1.25) + ln(1+sqrt(1.25)) - ln(2) ) =
+        // B0/MU0 = 1/2 *((1/sqrt(2) - ln(1+sqrt(2)) - 1/sqrt(1.25) + ln(1+sqrt(1.25)) + ln(2) ) =
         // -0.5056764413
         #[test]
         fn annular_disk_order_0() {
@@ -574,7 +575,7 @@ pub mod primitives {
             let z = 1.0;
             let annular = ThinAnnular::new(radius, thickness, current_density, z0);
             let answer = annular.get_nth_derivative(&0, &z);
-            let error = f64::abs(answer / MU0 - (-0.5056764413));
+            let error = f64::abs(answer / MU0 - (0.18747073917294));
             assert!(error < 1e-9);
         }
         //the first order can be computed from the polynomial experssions given in Eq.36 using
