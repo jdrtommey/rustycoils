@@ -48,11 +48,11 @@ pub mod primitives {
             }
             answer
         }
-        fn get_fields(&self, z: &f64, r: &f64, tol: &f64) -> (f64, f64) {
-            (
+        fn get_fields(&self, z: &f64, r: &f64, tol: &f64) -> [f64; 2] {
+            [
                 self.get_axial_field(z, r, tol),
                 self.get_radial_field(z, r, tol),
-            )
+            ]
         }
     }
 
