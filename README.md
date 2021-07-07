@@ -1,6 +1,6 @@
 # RustyCoils
-[![Actions Status](https://github.com/jdrtommey/solenoid/workflows/Test/badge.svg)](https://github.com/jdrtommey/solenoid/actions)
-[![Actions Status](https://github.com/jdrtommey/solenoid/workflows/LintFormat/badge.svg)](https://github.com/jdrtommey/solenoid/actions)
+[![Actions Status](https://github.com/jdrtommey/solenoid/workflows/Test/badge.svg)](https://github.com/jdrtommey/rustycoils/actions)
+[![Actions Status](https://github.com/jdrtommey/solenoid/workflows/LintFormat/badge.svg)](https://github.com/jdrtommey/rustycoils/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 This crate is an implementation of the numerical method for finding the off-axis magnetic field due to current systems with cyclindrical symmetry, i.e. coils and solenoids, presented in https://ieeexplore.ieee.org/document/760416 by R.H. Jackson. 
