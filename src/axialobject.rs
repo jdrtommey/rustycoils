@@ -32,8 +32,8 @@ use std::fmt;
 /// magnetic fields.
 pub struct AxialSystem {
     objects: HashMap<String, Primitives>,
-    origin: (f64, f64, f64),
-    orientation: (f64, f64, f64),
+    origin: [f64; 3],
+    orientation: [f64; 3],
 }
 
 impl fmt::Display for AxialSystem {
@@ -41,12 +41,12 @@ impl fmt::Display for AxialSystem {
         write!(
             f,
             "Origin:({},{},{}),Orientation:({},{},{})",
-            self.origin.0,
-            self.origin.1,
-            self.origin.2,
-            self.orientation.0,
-            self.orientation.1,
-            self.orientation.2
+            self.origin[0],
+            self.origin[1],
+            self.origin[2],
+            self.orientation[0],
+            self.orientation[1],
+            self.orientation[2]
         )
     }
 }
@@ -63,9 +63,9 @@ impl AxialSystem {
     ///
     /// ```
     /// # use rustycoils::AxialSystem;
-    /// let axial = AxialSystem::new((0.0,0.0,0.0),(1.0,0.0,0.0));
+    /// let axial = AxialSystem::new([0.0,0.0,0.0],[1.0,0.0,0.0]);
     /// ```
-    pub fn new(origin: (f64, f64, f64), orientation: (f64, f64, f64)) -> AxialSystem {
+    pub fn new(origin: [f64; 3], orientation: [f64; 3]) -> AxialSystem {
         AxialSystem {
             objects: HashMap::new(),
             origin,
@@ -88,8 +88,8 @@ impl AxialSystem {
     pub fn default() -> AxialSystem {
         AxialSystem {
             objects: HashMap::new(),
-            origin: (0.0, 0.0, 0.0),
-            orientation: (1.0, 0.0, 0.0),
+            origin: [0.0, 0.0, 0.0],
+            orientation: [1.0, 0.0, 0.0],
         }
     }
 }
@@ -342,7 +342,7 @@ impl AxialSystem {
     /// axial.transform_x();
     /// ```
     pub fn transform_x(&mut self) {
-        self.orientation = (1.0, 0.0, 0.0);
+        self.orientation = [1.0, 0.0, 0.0];
     }
     /// Transforms the symmetry axis to point along the y axis
     ///
@@ -356,7 +356,7 @@ impl AxialSystem {
     /// axial.transform_y();
     /// ```
     pub fn transform_y(&mut self) {
-        self.orientation = (0.0, 1.0, 0.0);
+        self.orientation = [0.0, 1.0, 0.0];
     }
     /// Transforms the symmetry axis to point along the z axis
     ///
@@ -370,7 +370,7 @@ impl AxialSystem {
     /// axial.transform_z();
     /// ```
     pub fn transform_z(&mut self) {
-        self.orientation = (0.0, 0.0, 1.0);
+        self.orientation = [0.0, 0.0, 1.0];
     }
 }
 
@@ -786,17 +786,16 @@ impl AxialSystem {
 }
 
 impl AxialSystem {
-    fn get_field_in_frame(&self, (x, y, z): &(f64, f64, f64), tol: &f64) -> (f64, f64) {
-        let (z, r, _theta) =
-            _convert_cartesian_to_axial((*x, *y, *z), self.origin, self.orientation);
+    fn get_field_in_frame(&self, pos: [f64; 3], tol: &f64) -> [f64; 2] {
+        let [z, r, _theta] = _convert_cartesian_to_axial(pos, self.origin, self.orientation);
         let mut field_z = 0.0;
         let mut field_r = 0.0;
         for (_, object) in self.objects.iter() {
-            let (new_z, new_r) = object.get_field(&z, &r, tol);
+            let [new_z, new_r] = object.get_field(&z, &r, tol);
             field_z += new_z;
             field_r += new_r;
         }
-        (field_z, field_r)
+        [field_z, field_r]
     }
     /// Computes the magnetic field of the axial system
     ///
@@ -814,13 +813,12 @@ impl AxialSystem {
     /// # use rustycoils::{AxialSystem,AxialError};
     /// let mut axial = AxialSystem::default();
     /// let res = axial.add_loop("loop1".to_string(),1.0,0.0,1.0);
-    /// let magnetic_field = axial.get_field(&(0.0,0.0,0.0),&1e-16);
+    /// let magnetic_field = axial.get_field([0.0,0.0,0.0],&1e-16);
     /// ```
-    pub fn get_field(&self, (x, y, z): &(f64, f64, f64), tol: &f64) -> (f64, f64, f64) {
-        let (_z, _r, theta) =
-            _convert_cartesian_to_axial((*x, *y, *z), self.origin, self.orientation);
-        let (field_z, field_r) = self.get_field_in_frame(&(*x, *y, *z), tol);
-        _convert_axial_to_cartesian((field_z, field_r, theta), self.origin, self.orientation)
+    pub fn get_field(&self, pos: [f64; 3], tol: &f64) -> [f64; 3] {
+        let [_z, _r, theta] = _convert_cartesian_to_axial(pos, self.origin, self.orientation);
+        let [field_z, field_r] = self.get_field_in_frame(pos, tol);
+        _convert_axial_to_cartesian([field_z, field_r, theta], self.origin, self.orientation)
     }
     /// Computes the magnetic field of the axial system in relative frame
     ///
@@ -841,17 +839,17 @@ impl AxialSystem {
     /// let res = axial.add_loop("loop1".to_string(),1.0,0.0,1.0);
     /// let magnetic_field = axial.get_field_axial(&[2.0,0.1],&1e-16);
     /// ```
-    pub fn get_field_axial(&self, position: &[f64; 2], tol: &f64) -> (f64, f64) {
+    pub fn get_field_axial(&self, position: &[f64; 2], tol: &f64) -> [f64; 2] {
         let mut field_z = 0.0;
         let mut field_r = 0.0;
         let z = position[0];
         let r = position[1];
         for (_, object) in self.objects.iter() {
-            let (new_z, new_r) = object.get_field(&z, &r, tol);
+            let [new_z, new_r] = object.get_field(&z, &r, tol);
             field_z += new_z;
             field_r += new_r;
         }
-        (field_z, field_r)
+        [field_z, field_r]
     }
 }
 
@@ -876,7 +874,7 @@ impl fmt::Display for Primitives {
     }
 }
 impl Primitives {
-    pub fn get_field(&self, z: &f64, r: &f64, tol: &f64) -> (f64, f64) {
+    pub fn get_field(&self, z: &f64, r: &f64, tol: &f64) -> [f64; 2] {
         match self {
             Primitives::IdealWire(wire) => wire.get_fields(z, r, tol),
             Primitives::ThinSolenoid(solenoid) => solenoid.get_fields(z, r, tol),
@@ -948,60 +946,60 @@ fn _is_id_valid(map: &HashMap<String, Primitives>, id: &str) -> AxialError {
 // hacky solution until impliment a general transformation.
 #[allow(unused_variables)]
 fn _convert_cartesian_to_axial(
-    coordinates: (f64, f64, f64),
-    origin: (f64, f64, f64),
-    orientation: (f64, f64, f64),
-) -> (f64, f64, f64) {
+    coordinates: [f64; 3],
+    origin: [f64; 3],
+    orientation: [f64; 3],
+) -> [f64; 3] {
     let mut z = 0.0;
     let mut perp1 = 0.0;
     let mut perp2 = 0.0;
-    if orientation.0 > 0.1 {
-        z = coordinates.0;
-        perp1 = coordinates.1;
-        perp2 = coordinates.2;
+    if orientation[0] > 0.1 {
+        z = coordinates[0];
+        perp1 = coordinates[1];
+        perp2 = coordinates[2];
     }
-    if orientation.1 > 0.1 {
-        z = coordinates.1;
-        perp1 = coordinates.2;
-        perp2 = coordinates.0;
+    if orientation[1] > 0.1 {
+        z = coordinates[1];
+        perp1 = coordinates[2];
+        perp2 = coordinates[0];
     }
-    if orientation.2 > 0.1 {
-        z = coordinates.2;
-        perp1 = coordinates.0;
-        perp2 = coordinates.1;
+    if orientation[2] > 0.1 {
+        z = coordinates[2];
+        perp1 = coordinates[0];
+        perp2 = coordinates[1];
     }
 
     let r = (perp1.powi(2) + perp2.powi(2)).sqrt();
     let theta = perp1.atan2(perp2);
-    (z, r, theta)
+    [z, r, theta]
 }
 //takes z,r,theta coordinates and converts into x,y,z
 //again a hacky solution when only x,y,z at origin are allowed.
 #[allow(unused_variables)]
 fn _convert_axial_to_cartesian(
-    coordinates: (f64, f64, f64),
-    origin: (f64, f64, f64),
-    orientation: (f64, f64, f64),
-) -> (f64, f64, f64) {
+    coordinates: [f64; 3],
+    origin: [f64; 3],
+    orientation: [f64; 3],
+) -> [f64; 3] {
     let mut x = 0.0;
     let mut y = 0.0;
     let mut z = 0.0;
-    if orientation.0 > 0.1 {
-        x = coordinates.0;
-        y = coordinates.1 * (f64::sin(coordinates.2));
-        z = coordinates.1 * (f64::cos(coordinates.2));
+    if orientation[0] > 0.1 {
+        x = coordinates[0];
+        y = coordinates[1] * (f64::sin(coordinates[2]));
+        z = coordinates[1] * (f64::cos(coordinates[2]));
     }
-    if orientation.1 > 0.1 {
-        y = coordinates.0;
-        z = coordinates.1 * (f64::sin(coordinates.2));
-        x = coordinates.1 * (f64::cos(coordinates.2));
+    if orientation[1] > 0.1 {
+        y = coordinates[0];
+        z = coordinates[1] * (f64::sin(coordinates[2]));
+        x = coordinates[1] * (f64::cos(coordinates[2]));
     }
-    if orientation.2 > 0.1 {
-        z = coordinates.0;
-        x = coordinates.1 * (f64::sin(coordinates.2));
-        y = coordinates.1 * (f64::cos(coordinates.2));
+    if orientation[2] > 0.1 {
+        z = coordinates[0];
+        x = coordinates[1] * (f64::sin(coordinates[2]));
+        y = coordinates[1] * (f64::cos(coordinates[2]));
     }
-    (x, y, z)
+    [x, y, z]
 }
 
 #[cfg(test)]
@@ -1014,22 +1012,22 @@ mod test_transformations {
         let z = 4.0;
 
         let axial_coordinate =
-            _convert_cartesian_to_axial((x, y, z), (0.0, 0.0, 0.0), (0.0, 0.0, 1.0));
+            _convert_cartesian_to_axial([x, y, z], [0.0, 0.0, 0.0], [0.0, 0.0, 1.0]);
         assert_eq!(
             axial_coordinate,
-            (4.0, f64::sqrt(x * x + y * y), x.atan2(y))
+            [4.0, f64::sqrt(x * x + y * y), x.atan2(y)]
         );
         let axial_coordinate =
-            _convert_cartesian_to_axial((x, y, z), (0.0, 0.0, 0.0), (1.0, 0.0, 0.0));
+            _convert_cartesian_to_axial([x, y, z], [0.0, 0.0, 0.0], [1.0, 0.0, 0.0]);
         assert_eq!(
             axial_coordinate,
-            (1.0, f64::sqrt(z * z + y * y), y.atan2(z))
+            [1.0, f64::sqrt(z * z + y * y), y.atan2(z)]
         );
         let axial_coordinate =
-            _convert_cartesian_to_axial((x, y, z), (0.0, 0.0, 0.0), (0.0, 1.0, 0.0));
+            _convert_cartesian_to_axial([x, y, z], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
         assert_eq!(
             axial_coordinate,
-            (2.0, f64::sqrt(x * x + z * z), z.atan2(x))
+            [2.0, f64::sqrt(x * x + z * z), z.atan2(x)]
         );
     }
     #[test]
@@ -1041,8 +1039,8 @@ mod test_transformations {
         let b_r = 10.0;
         let theta = 0.0;
 
-        let (bx, by, bz) =
-            _convert_axial_to_cartesian((b_z, b_r, theta), (0.0, 0.0, 0.0), (0.0, 1.0, 0.0));
+        let [bx, by, bz] =
+            _convert_axial_to_cartesian([b_z, b_r, theta], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
         assert!((by - b_z).abs() < 1e-8);
         assert!((bz - 0.0).abs() < 1e-8);
         assert!((bx - 10.0).abs() < 1e-8);
@@ -1054,26 +1052,26 @@ mod test_transformations {
         let z = 3.0;
 
         let axial_coordinates =
-            _convert_cartesian_to_axial((x, y, z), (0.0, 0.0, 0.0), (0.0, 0.0, 1.0));
+            _convert_cartesian_to_axial([x, y, z], [0.0, 0.0, 0.0], [0.0, 0.0, 1.0]);
         let new_carts =
-            _convert_axial_to_cartesian(axial_coordinates, (0.0, 0.0, 0.0), (0.0, 0.0, 1.0));
-        assert!((new_carts.0 - x).abs() < 1e-6);
-        assert!((new_carts.1 - y).abs() < 1e-6);
-        assert!((new_carts.2 - z).abs() < 1e-6);
+            _convert_axial_to_cartesian(axial_coordinates, [0.0, 0.0, 0.0], [0.0, 0.0, 1.0]);
+        assert!((new_carts[0] - x).abs() < 1e-6);
+        assert!((new_carts[1] - y).abs() < 1e-6);
+        assert!((new_carts[2] - z).abs() < 1e-6);
         let axial_coordinates =
-            _convert_cartesian_to_axial((x, y, z), (0.0, 0.0, 0.0), (0.0, 1.0, 0.0));
+            _convert_cartesian_to_axial([x, y, z], [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
         let new_carts =
-            _convert_axial_to_cartesian(axial_coordinates, (0.0, 0.0, 0.0), (0.0, 1.0, 0.0));
-        assert!((new_carts.0 - x).abs() < 1e-6);
-        assert!((new_carts.1 - y).abs() < 1e-6);
-        assert!((new_carts.2 - z).abs() < 1e-6);
+            _convert_axial_to_cartesian(axial_coordinates, [0.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
+        assert!((new_carts[0] - x).abs() < 1e-6);
+        assert!((new_carts[1] - y).abs() < 1e-6);
+        assert!((new_carts[2] - z).abs() < 1e-6);
         let axial_coordinates =
-            _convert_cartesian_to_axial((x, y, z), (0.0, 0.0, 0.0), (1.0, 0.0, 0.0));
+            _convert_cartesian_to_axial([x, y, z], [0.0, 0.0, 0.0], [1.0, 0.0, 0.0]);
         let new_carts =
-            _convert_axial_to_cartesian(axial_coordinates, (0.0, 0.0, 0.0), (1.0, 0.0, 0.0));
-        assert!((new_carts.0 - x).abs() < 1e-6);
-        assert!((new_carts.1 - y).abs() < 1e-6);
-        assert!((new_carts.2 - z).abs() < 1e-6);
+            _convert_axial_to_cartesian(axial_coordinates, [0.0, 0.0, 0.0], [1.0, 0.0, 0.0]);
+        assert!((new_carts[0] - x).abs() < 1e-6);
+        assert!((new_carts[1] - y).abs() < 1e-6);
+        assert!((new_carts[2] - z).abs() < 1e-6);
     }
 }
 
