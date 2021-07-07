@@ -97,7 +97,7 @@ mycoil.modify_thickness("COIL",6.0);
 
 The magnetic field in each of the cartesian directions can be computed from 
 ```rust
-(mag_x,mag_y,mag_z) = mycoil.get_field((x,y,z),1e-10);
+(mag_x,mag_y,mag_z) = mycoil.get_field([x,y,z],1e-10);
 ```
 where 1e-10 is the tolerance to stop including additional terms in the power expansion.
 
