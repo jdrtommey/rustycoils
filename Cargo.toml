@@ -13,7 +13,7 @@ license = "LICENSE"
 
 [dependencies]
 rayon = {version = "1.5",optional=true,default-features=true}
-ndarray= {version = "0.15",optional=true,default-features=true}
+ndarray= {version = "0.15",optional=true,default-features=true,features=["rayon"]}
 [features]
 default = ["rayon","ndarray"]
 
