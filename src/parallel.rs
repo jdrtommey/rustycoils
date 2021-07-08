@@ -21,19 +21,23 @@ pub fn get_b_parallel(
     fields.collect()
 }
 /// parallel iterates over an nd array containing positions.
-/// not optimized
+/// not optimized assumes a 3d array
 pub fn get_b_ndarray(
     axialsystem: &AxialSystem,
     positions: ArrayView2<f64>,
     tol: f64,
 ) -> Array2<f64> {
+    match positions.dim().1 {
+        3 => {}
+        _ => panic!(),
+    }
     let mut fields = Array2::<f64>::zeros(positions.dim()); //fields array to populate
     Zip::from(fields.rows_mut())
         .and(positions.rows())
         .for_each(|mut field, position| {
             let res = _get_field_ndarray(&position, axialsystem, &tol);
             field[0] = res[0];
-            field[1] = 0.1;
+            field[1] = res[1];
             field[2] = res[2];
         });
     fields
