@@ -34,7 +34,7 @@ pub fn get_b_ndarray(
     let mut fields = Array2::<f64>::zeros(positions.dim()); //fields array to populate
     Zip::from(fields.rows_mut())
         .and(positions.rows())
-        .for_each(|mut field, position| {
+        .par_for_each(|mut field, position| {
             let res = _get_field_ndarray(&position, axialsystem, &tol);
             field[0] = res[0];
             field[1] = res[1];
