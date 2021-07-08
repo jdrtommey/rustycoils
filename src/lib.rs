@@ -26,6 +26,8 @@ pub use axialobject::{AxialError, AxialSystem};
 #[cfg(feature = "rayon")]
 mod parallel;
 #[cfg(feature = "rayon")]
+pub use parallel::get_b_ndarray;
+#[cfg(feature = "rayon")]
 pub use parallel::get_b_parallel;
 #[cfg(feature = "rayon")]
 pub use parallel::get_b_seq;

@@ -1,5 +1,9 @@
 use crate::axialobject::AxialSystem;
+use ndarray::Zip;
+use ndarray::{Array1, Array2, ArrayView1};
 use rayon::prelude::*;
+
+use std::convert::TryInto;
 /// performs the computation of the magnetic field in parallel for multiple positions
 /// simultaneously using [Rayon](https://docs.rs/rayon).
 ///
@@ -15,6 +19,37 @@ pub fn get_b_parallel(
         .into_par_iter()
         .map(|i| axialsystem.get_field(i, &tol));
     fields.collect()
+}
+/// parallel iterates over an nd array containing positions.
+/// not optimized
+pub fn get_b_ndarray(axialsystem: &AxialSystem, positions: Array2<f64>, tol: f64) -> Array2<f64> {
+    let mut fields = Array2::<f64>::zeros(positions.dim()); //fields array to populate
+    Zip::from(fields.rows_mut())
+        .and(positions.rows())
+        .for_each(|mut field, position| {
+            let res = _get_field_ndarray(&position, axialsystem, &tol);
+            field[0] = res[0];
+            field[1] = res[1];
+            field[2] = res[2];
+        });
+    fields
+}
+
+fn _get_field_ndarray(
+    position: &ArrayView1<f64>,
+    axialsystem: &AxialSystem,
+    tol: &f64,
+) -> Array1<f64> {
+    let pos_as_array = match position.as_slice() {
+        Some(x) => x,
+        None => panic!(),
+    };
+    let pos_as_array: [f64; 3] = match pos_as_array.try_into() {
+        Ok(x) => x,
+        Err(_) => panic!(),
+    };
+    let field = axialsystem.get_field(pos_as_array, tol).to_vec();
+    Array1::from(field)
 }
 // added for benchmarking
 pub fn get_b_seq(axialsystem: &AxialSystem, positions: Vec<[f64; 3]>, tol: f64) -> Vec<[f64; 3]> {
