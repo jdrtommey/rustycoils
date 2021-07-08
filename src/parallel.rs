@@ -1,6 +1,6 @@
 use crate::axialobject::AxialSystem;
 use ndarray::Zip;
-use ndarray::{Array1, Array2, ArrayView1};
+use ndarray::{Array1, Array2, ArrayView1, ArrayView2};
 use rayon::prelude::*;
 
 use std::convert::TryInto;
@@ -22,7 +22,11 @@ pub fn get_b_parallel(
 }
 /// parallel iterates over an nd array containing positions.
 /// not optimized
-pub fn get_b_ndarray(axialsystem: &AxialSystem, positions: Array2<f64>, tol: f64) -> Array2<f64> {
+pub fn get_b_ndarray(
+    axialsystem: &AxialSystem,
+    positions: ArrayView2<f64>,
+    tol: f64,
+) -> Array2<f64> {
     let mut fields = Array2::<f64>::zeros(positions.dim()); //fields array to populate
     Zip::from(fields.rows_mut())
         .and(positions.rows())
