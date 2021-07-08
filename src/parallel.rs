@@ -33,7 +33,7 @@ pub fn get_b_ndarray(
         .for_each(|mut field, position| {
             let res = _get_field_ndarray(&position, axialsystem, &tol);
             field[0] = res[0];
-            field[1] = res[1];
+            field[1] = 0.1;
             field[2] = res[2];
         });
     fields
