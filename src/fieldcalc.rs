@@ -113,7 +113,7 @@ pub mod primitives {
                 radius,
                 current,
                 z0,
-                max_depth: 7,
+                max_depth: 9,
             }
         }
         pub fn set_radius(&mut self, radius: f64) {
@@ -194,11 +194,11 @@ pub mod primitives {
             // if zeroth derivative return the on axis field value Eq.32 in reference paper.
             // else compute the polynomials.
             match n {
-                0 => return _zeroth_order_annular(x, xi, rho, self.current_density),
+                0 => _zeroth_order_annular(x, xi, rho, self.current_density),
                 _ => {
                     let term1 = _get_annular_normalized_b(n, &x, &self.radius);
                     let term2 = _get_annular_normalized_b(n, &xi, &(self.radius + self.thickness));
-                    return b0 * (term1 - term2);
+                    b0 * (term1 - term2)
                 }
             }
         }
@@ -244,7 +244,7 @@ pub mod primitives {
                 current_density: current / length,
                 length,
                 z0,
-                max_depth: 14,
+                max_depth: 9,
             }
         }
         pub fn set_radius(&mut self, radius: f64) {
@@ -1026,10 +1026,120 @@ mod polynomials {
         ];
         const INFLOOP_14_HCF: f64 = 638512875.0;
         const INFLOOP_15: [f64; 16] = [
-            0.0, 6435.0, 0.0, 240240.0, 0.0, -2018016.0, 0.0, 5765760.0, 0.0, -6406400.0, 0.0,
+            0.0, -6435.0, 0.0, 240240.0, 0.0, -2018016.0, 0.0, 5765760.0, 0.0, -6406400.0, 0.0,
             2795520.0, 0.0, -430080.0, 0.0, 16384.0,
         ];
         const INFLOOP_15_HCF: f64 = -10854718875.0;
+        const INFLOOP_16: [f64; 17] = [
+            715.0,
+            -0.0,
+            -102960.0,
+            -0.0,
+            1921920.0,
+            -0.0,
+            -10762752.0,
+            -0.0,
+            23063040.0,
+            -0.0,
+            -20500480.0,
+            -0.0,
+            7454720.0,
+            -0.0,
+            -983040.0,
+            -0.0,
+            32768.0,
+        ];
+        const INFLOOP_16_HCF: f64 = 97692469875.0;
+        const INFLOOP_17: [f64; 18] = [
+            -0.0,
+            12155.0,
+            -0.0,
+            -583440.0,
+            -0.0,
+            6534528.0,
+            -0.0,
+            -26138112.0,
+            -0.0,
+            43563520.0,
+            -0.0,
+            -31682560.0,
+            -0.0,
+            9748480.0,
+            -0.0,
+            -1114112.0,
+            -0.0,
+            32768.0,
+        ];
+        const INFLOOP_17_HCF: f64 = -1856156927625.0;
+        const INFLOOP_18: [f64; 19] = [
+            -2431.0,
+            -0.0,
+            437580.0,
+            -0.0,
+            -10501920.0,
+            -0.0,
+            78414336.0,
+            -0.0,
+            -235243008.0,
+            -0.0,
+            313657344.0,
+            -0.0,
+            -190095360.0,
+            -0.0,
+            50135040.0,
+            -0.0,
+            -5013504.0,
+            -0.0,
+            131072.0,
+        ];
+        const INFLOOP_18_HCF: f64 = 9280784638125.0;
+        const INFLOOP_19: [f64; 20] = [
+            -0.0,
+            -46189.0,
+            -0.0,
+            2771340.0,
+            -0.0,
+            -39907296.0,
+            -0.0,
+            212838912.0,
+            -0.0,
+            -496624128.0,
+            -0.0,
+            541771776.0,
+            -0.0,
+            -277831680.0,
+            -0.0,
+            63504384.0,
+            -0.0,
+            -5603328.0,
+            -0.0,
+            131072.0,
+        ];
+        const INFLOOP_19_HCF: f64 = -194896477400625.0;
+        const INFLOOP_20: [f64; 21] = [
+            4199.0,
+            -0.0,
+            -923780.0,
+            -0.0,
+            27713400.0,
+            -0.0,
+            -266048640.0,
+            -0.0,
+            1064194560.0,
+            -0.0,
+            -1986496512.0,
+            -0.0,
+            1805905920.0,
+            -0.0,
+            -793804800.0,
+            -0.0,
+            158760960.0,
+            -0.0,
+            -12451840.0,
+            -0.0,
+            262144.0,
+        ];
+        const INFLOOP_20_HCF: f64 = 2143861251406875.0;
         pub fn get_loop_poly(n: u32) -> (f64, Vec<f64>) {
             match n {
                 0 => (INFLOOP_0_HCF, INFLOOP_0.to_vec()),
@@ -1048,6 +1158,11 @@ mod polynomials {
                 13 => (INFLOOP_13_HCF, INFLOOP_13.to_vec()),
                 14 => (INFLOOP_14_HCF, INFLOOP_14.to_vec()),
                 15 => (INFLOOP_15_HCF, INFLOOP_15.to_vec()),
+                16 => (INFLOOP_16_HCF, INFLOOP_16.to_vec()),
+                17 => (INFLOOP_17_HCF, INFLOOP_17.to_vec()),
+                18 => (INFLOOP_18_HCF, INFLOOP_18.to_vec()),
+                19 => (INFLOOP_19_HCF, INFLOOP_19.to_vec()),
+                20 => (INFLOOP_20_HCF, INFLOOP_20.to_vec()),
                 _ => (0.0, vec![0.0]),
             }
         }

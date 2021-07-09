@@ -12,9 +12,11 @@ license = "LICENSE"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rayon = {version = "1.5",optional=true,default-features=true}
+rayon = {version = "1.5", optional=true,default-features=true}
+ndarray= {version = "0.15",optional=true,default-features=true,features=["rayon"]}
 [features]
-default = ["rayon"]
+default = []
+parallel= ["rayon","ndarray"]
 
 [dev-dependencies]
 GSL = "*"
