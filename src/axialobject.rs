@@ -837,11 +837,13 @@ impl AxialSystem {
     /// # use rustycoils::{AxialSystem,AxialError};
     /// let mut axial = AxialSystem::default();
     /// let res = axial.add_loop("loop1".to_string(),1.0,0.0,1.0);
-    /// let magnetic_field = axial.get_field_axial(&2.0,&0.1,&1e-16);
+    /// let magnetic_field = axial.get_field_axial(&[2.0,0.1],&1e-16);
     /// ```
-    pub fn get_field_axial(&self, z: &f64, r: &f64, tol: &f64) -> [f64; 2] {
+    pub fn get_field_axial(&self, position: &[f64; 2], tol: &f64) -> [f64; 2] {
         let mut field_z = 0.0;
         let mut field_r = 0.0;
+        let z = position[0];
+        let r = position[1];
         for (_, object) in self.objects.iter() {
             let [new_z, new_r] = object.get_field(&z, &r, tol);
             field_z += new_z;
