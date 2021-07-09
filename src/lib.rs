@@ -21,13 +21,12 @@
 mod axialobject;
 mod fieldcalc;
 
+#[cfg(feature = "parallel")]
+mod parallel;
+
 pub use axialobject::{AxialError, AxialSystem};
 
-#[cfg(feature = "rayon")]
-mod parallel;
-#[cfg(feature = "rayon")]
+#[cfg(feature = "parallel")]
 pub use parallel::get_b_ndarray;
-#[cfg(feature = "rayon")]
-pub use parallel::get_b_parallel;
-#[cfg(feature = "rayon")]
-pub use parallel::get_b_seq;
+#[cfg(feature = "parallel")]
+pub use parallel::get_b_vec;

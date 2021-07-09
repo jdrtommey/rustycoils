@@ -194,11 +194,11 @@ pub mod primitives {
             // if zeroth derivative return the on axis field value Eq.32 in reference paper.
             // else compute the polynomials.
             match n {
-                0 => return _zeroth_order_annular(x, xi, rho, self.current_density),
+                0 => _zeroth_order_annular(x, xi, rho, self.current_density),
                 _ => {
                     let term1 = _get_annular_normalized_b(n, &x, &self.radius);
                     let term2 = _get_annular_normalized_b(n, &xi, &(self.radius + self.thickness));
-                    return b0 * (term1 - term2);
+                    b0 * (term1 - term2)
                 }
             }
         }
