@@ -73,7 +73,7 @@ mod paralell_test {
         let mut myvec: Vec<[f64; 3]> = Vec::new();
         let z = 0.0;
         let y = 0.0;
-        let tol = 1e-18;
+        let tol = 1e-12;
         for x in -1000..1000 {
             myvec.push([(x as f64) * 0.01, y, z]);
         }
@@ -91,7 +91,7 @@ mod paralell_test {
         let mut myvec: Vec<[f64; 3]> = Vec::new();
         let z = 0.2;
         let y = 0.2;
-        let tol = 1e-18;
+        let tol = 1e-12;
         for x in -1000..1000 {
             myvec.push([(x as f64) * 0.01, y, z]);
         }
@@ -110,7 +110,7 @@ mod paralell_test {
         let mut myvec: Vec<[f64; 3]> = Vec::new();
         let z = 0.2;
         let y = 0.2;
-        let tol = 1e-18;
+        let tol = 1e-12;
         for x in -1000..1000 {
             myvec.push([(x as f64) * 0.01, y, z]);
         }
@@ -135,7 +135,7 @@ mod paralell_test {
         let mut myvec: Vec<[f64; 4]> = Vec::new();
         let z = 0.2;
         let y = 0.2;
-        let tol = 1e-18;
+        let tol = 1e-12;
         for x in -1000..1000 {
             myvec.push([(x as f64) * 0.01, y, z, 0.0]);
         }

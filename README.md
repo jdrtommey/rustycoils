@@ -3,14 +3,11 @@
 [![Actions Status](https://github.com/jdrtommey/solenoid/workflows/LintFormat/badge.svg)](https://github.com/jdrtommey/rustycoils/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This crate is an implementation of the numerical method for finding the off-axis magnetic field due to current systems with cyclindrical symmetry, i.e. coils and solenoids, presented in https://ieeexplore.ieee.org/document/760416 by R.H. Jackson. 
-Analytical solutions exist for simple systems based on elliptical integrals, however these are numerically slower to implement. Further, provided that the region of interest is sufficiently close to the symmetry axis, no more accurate. Quoting the paper, this algorithm is designed to be "fast enough to be used interactively and compact enough to be embedded as a module in other codes".
+This crate implements a numerical method for determining the off-axis magnetic field of current systems with cyclindrical symmetry, i.e., solenoids and coils. The underlying algorithm is taken from [Off-axis expansion solution of Laplace's equation: Application to accurate and rapid calculation of coil magnetic fields](https://ieeexplore.ieee.org/document/760416) by R.H. Jackson. This method makes use of primitive coil/loop shapes for which the on-axis magnetic field (and all their derivatives) are analytically known. A power series of these derivatives can be used to determine the full off-axis magnetic field. Provided the position of interest is near enough the axis this provides very rapid and accurate computation of the magnetic field. Quoting the paper, this algorithm is designed to be "fast enough to be used interactively and compact enough to be embedded as a module in other codes".
 
-This situation arises in simulating beams of atoms in Rydberg states in coherent quantum optics experiments moving in homogenous magentic fields provided by either solenoids or systems of coils. At each time-step the magnetic field needs to be calculated for a distribution of atoms close to the center of the magnetic field. The small deviations due to a physical implimentation can lead to small forces or Zeeman energy shifts. 
-Similar experiments such as Zeeman slowers purposely make use of inhomogenous magnetic fields to impart forces. I thought this could be useful for someone else as an alternative to the elliptical integral methods I could find. 
+Fully analytic solutions for the infinitely thin wire loop exist based on elliptical integrals and can be combined to compute the field of more complicated systems of coils. This can become slow when multiple wire loops are being used to model a solenoid or set of coils. In particular when the region of interest is close to the axis. For this scenario the approach implemented here which includes such solenoids as a basic primitive is useful. For example, this arises in atom optics experiments such as simulating beams of atoms in Rydberg states moving in (in)homogenous magentic fields provided by either solenoids or systems of coils. At each time-step the magnetic field needs to be calculated for a distribution of atoms close to the axis of the system. The small deviations due to a physical implementation can lead to small forces or Zeeman energy shifts.
 
-This package is written in Rust to take advantage of its speed and (eventually) parallelisation abilities, but really it's because I wanted an excuse to use Rust for a project, and I plan on providing a Python wrapper using pyo3 in a seperated repository.
- 
+This package is written in Rust to take advantage of its speed and parallelisation abilities, but really it's because I wanted an excuse to use Rust for a project, and I wrote a Python wrapper using pyo3 in a seperate repository [rustpycoils](https://github.com/jdrtommey/rustpycoils).
 
 The algorithm makes use of primitive shapes with cylindrical symmetry:
 
@@ -20,9 +17,9 @@ The algorithm makes use of primitive shapes with cylindrical symmetry:
 * Thick solenoids (Coils)
 
 # Warning
-
+ 
 I put this together very quickly and it is still very much a prototype. I've tested the case of an ideal wire loop which has a simple analytical solution
-and this appears to be working (test script in tests/idealloop.rs) but have not tested the other primitives yet. If anyone finds, and try and use, this package in its current form please check the solutions against another method before attempting to use it for anything that matters.
+and this appears to be working (test script in [idealloop.rs](./tests/idealloop.rs). But I have not tested the other primitives yet, beyond checking the under certain limits they give the same answer from combining many current loops. If anyone tries to use this package in its current form please check the solutions against another method before attempting to use it for anything that matters.
 
 
 # Usage 
@@ -60,7 +57,7 @@ mycoil.add_coil("coil1",radius,length,thickness,position,current);
 The parameters controlling these primitives can be be modified by using the functions 
 ```rust
 //change radius of the current loop
-mycoil.modify_radius("loop1",6.0);  "loop1"
+mycoil.modify_radius("loop1",6.0); 
 //change length of the solenoid "bar"
 mycoil.modify_length("bar",3.0); 
 //change length of the coil "coil1"
@@ -97,14 +94,13 @@ mycoil.modify_thickness("COIL",6.0);
 
 The magnetic field in each of the cartesian directions can be computed from 
 ```rust
-(mag_x,mag_y,mag_z) = mycoil.get_field([x,y,z],1e-10);
+[mag_x,mag_y,mag_z] = mycoil.get_field([x,y,z],1e-18);
 ```
-where 1e-10 is the tolerance to stop including additional terms in the power expansion.
+where 1e-18 is the tolerance to stop including additional terms in the power expansion.
 
 # TO-DO
 
 Things I plan on implementing soon
 
-- Tests of Annular and Coil primitives
 - Arbitrary orientation of symmetry axes
-- Parallelise the field computation using Rayon
+- Combine multiple AxialSystems along different axes
