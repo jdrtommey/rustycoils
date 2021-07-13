@@ -1,6 +1,6 @@
 [package]
 name = "rustycoils"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["J.D.R. Tommey"]
 edition = "2018"
 description = "Fast method to compute off-axis magnetic fields for cylindrically symmetric systems of solenoids and current loops"
