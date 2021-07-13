@@ -17,34 +17,35 @@ pub mod primitives {
         // impliments equation 14a in reference paper.
         fn get_axial_field(&self, z: &f64, r: &f64, tol: &f64) -> f64 {
             let mut answer = 0.0;
-            let mut diff = 1.0;
-            let mut counter: i32 = 0;
-            while diff > *tol && counter <= self.get_max_depth() as i32 {
+            for counter in 0..self.get_max_depth() {
                 let old_answer = answer;
                 let next_derivative = self.get_nth_derivative(&(2 * counter as u32), &z);
-                let denominator =
-                    f64::powi(2.0, 2 * counter) * (u32::pow(factorial(counter as u32), 2) as f64);
-                let numerator = i32::pow(-1, counter as u32) as f64 * f64::powi(*r, 2 * counter);
+                let denominator = f64::powi(2.0, 2 * counter as i32)
+                    * ((factorial(counter as u32) * factorial(counter as u32)) as f64);
+                let numerator =
+                    i32::pow(-1, counter as u32) as f64 * f64::powi(*r, 2 * counter as i32);
                 answer += next_derivative * numerator / denominator;
-                counter += 1;
-                diff = f64::abs(answer - old_answer);
+                let diff = f64::abs((answer - old_answer) / old_answer);
+                if diff < *tol {
+                    break;
+                }
             }
             answer
         }
         fn get_radial_field(&self, z: &f64, r: &f64, tol: &f64) -> f64 {
             let mut answer = 0.0;
-            let mut diff = 1.0;
-            let mut counter: i32 = 0;
-            while diff > *tol && counter < self.get_max_depth() as i32 {
+            for counter in 0..self.get_max_depth() {
                 let old_answer = answer;
                 let next_derivative = self.get_nth_derivative(&(1 + 2 * counter as u32), &z);
-                let denominator = f64::powi(2.0, 2 * counter + 1)
+                let denominator = f64::powi(2.0, (2 * counter + 1) as i32)
                     * ((factorial(counter as u32) * factorial((counter + 1) as u32)) as f64);
-                let numerator =
-                    i32::pow(-1, 1 + counter as u32) as f64 * f64::powi(*r, 2 * counter + 1);
+                let numerator = i32::pow(-1, 1 + counter as u32) as f64
+                    * f64::powi(*r, (2 * counter + 1) as i32);
                 answer += next_derivative * numerator / denominator;
-                counter += 1;
-                diff = f64::abs(answer - old_answer);
+                let diff = f64::abs((answer - old_answer) / old_answer);
+                if diff < *tol {
+                    break;
+                }
             }
             answer
         }
@@ -113,7 +114,7 @@ pub mod primitives {
                 radius,
                 current,
                 z0,
-                max_depth: 9,
+                max_depth: 8,
             }
         }
         pub fn set_radius(&mut self, radius: f64) {
@@ -244,7 +245,7 @@ pub mod primitives {
                 current_density: current / length,
                 length,
                 z0,
-                max_depth: 9,
+                max_depth: 7,
             }
         }
         pub fn set_radius(&mut self, radius: f64) {
