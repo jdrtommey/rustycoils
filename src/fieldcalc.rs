@@ -28,7 +28,7 @@ pub mod primitives {
                     i32::pow(-1, counter as u32) as f64 * f64::powi(*r, 2 * counter as i32);
                 counter += 1;
                 answer += next_derivative * numerator / denominator;
-                diff = f64::abs((answer - old_answer) / old_answer);
+                diff = f64::abs(answer - old_answer);
             }
             answer
         }
@@ -45,7 +45,7 @@ pub mod primitives {
                     * f64::powi(*r, (2 * counter + 1) as i32);
                 answer += next_derivative * numerator / denominator;
                 counter += 1;
-                diff = f64::abs((answer - old_answer) / old_answer);
+                diff = f64::abs(answer - old_answer);
             }
             answer
         }
