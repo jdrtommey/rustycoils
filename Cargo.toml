@@ -20,4 +20,4 @@ default = []
 parallel= ["rayon","ndarray"]
 
 [dev-dependencies]
-GSL = "*"
+GSL = "4.0.1"
