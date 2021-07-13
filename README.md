@@ -96,7 +96,7 @@ The magnetic field in each of the cartesian directions can be computed from
 ```rust
 [mag_x,mag_y,mag_z] = mycoil.get_field([x,y,z],1e-10);
 ```
-where 1e-10 is the tolerance to stop including additional terms in the power expansion, and is defined in terms of the absolute relative error as abs((new_value - old_value)/old_value).
+where 1e-10 is the tolerance to stop including additional terms in the power expansion, and is defined in terms of the absolute error.
 
 # TO-DO
 
