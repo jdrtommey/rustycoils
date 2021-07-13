@@ -7,8 +7,9 @@ description = "Fast method to compute off-axis magnetic fields for cylindrically
 readme = "README.md"
 repository = "https://github.com/jdrtommey/rustycoils"
 license = "LICENSE"
-
-
+keywords = ["solenoid","magnetic","off-axis"]
+categories = ["science"]
+exclude = [".github/"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
