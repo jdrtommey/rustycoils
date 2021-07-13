@@ -5,7 +5,7 @@
 
 This crate implements a numerical method for determining the off-axis magnetic field of current systems with cyclindrical symmetry, i.e., solenoids and coils. The underlying algorithm is taken from [Off-axis expansion solution of Laplace's equation: Application to accurate and rapid calculation of coil magnetic fields](https://ieeexplore.ieee.org/document/760416) by R.H. Jackson. This method makes use of primitive coil/loop shapes for which the on-axis magnetic field (and all their derivatives) are analytically known. A power series of these derivatives can be used to determine the full off-axis magnetic field. Provided the position of interest is near enough the axis this provides very rapid and accurate computation of the magnetic field. Quoting the paper, this algorithm is designed to be "fast enough to be used interactively and compact enough to be embedded as a module in other codes".
 
-Fully analytic solutions for the infinitely thin wire loop exist based on elliptical integrals and can be combined to compute the field of more complicated systems of coils. This can become slow when multiple wire loops are being used to model a solenoid or set of coils. In particular when the region of interest is close to the axis. For this scenario the approach implemented here which includes such solenoids as a basic primitive is useful. For example, this arises in atom optics experiments such as simulating beams of atoms in Rydberg states moving in (in)homogenous magentic fields provided by either solenoids or systems of coils. At each time-step the magnetic field needs to be calculated for a distribution of atoms close to the axis of the system. The small deviations due to a physical implementation can lead to small forces or Zeeman energy shifts.
+Fully analytic solutions for the infinitely thin wire loop exist based on elliptical integrals and can be combined to compute the field of more complicated systems of coils. This can become slow when multiple wire loops are being used to model a solenoid or set of coils. In particular when the magnetic field region of interest is close to the axis. For this scenario the approach implemented here which includes extended shapes such as solenoids as basic primitive is useful. For example, this arises in atom optics experiments simulating beams of atoms moving in (in)homogenous magentic fields provided by either solenoids or systems of coils. At each time-step the magnetic field needs to be calculated for a distribution of atoms close to the axis of the system. This scenario requires only field values relatively close to the axis and for a simulation including many atoms, many field values to be computed repeatedly. 
 
 This package is written in Rust to take advantage of its speed and parallelisation abilities, but really it's because I wanted an excuse to use Rust for a project, and I wrote a Python wrapper using pyo3 in a seperate repository [rustpycoils](https://github.com/jdrtommey/rustpycoils).
 
@@ -20,7 +20,6 @@ The algorithm makes use of primitive shapes with cylindrical symmetry:
  
 I put this together very quickly and it is still very much a prototype. I've tested the case of an ideal wire loop which has a simple analytical solution
 and this appears to be working (test script in [idealloop.rs](./tests/idealloop.rs). But I have not tested the other primitives yet, beyond checking the under certain limits they give the same answer from combining many current loops. If anyone tries to use this package in its current form please check the solutions against another method before attempting to use it for anything that matters.
-
 
 # Usage 
 
@@ -40,7 +39,8 @@ mycoil.transform_z();
 
 ```
 
-Individual primitive coils can be added to the AxialSystem with a unique UTF-8 identifier.
+Individual primitive coils can be added to the AxialSystem with a unique UTF-8 identifier. The units are S.I. with radius,thickness,length and positions in Metres, and current in Amperes. 
+The primitives locations are defined from one end, i.e., a 10 metre long solenoid located 5m from the origin will have one opening at 5m and the second at 15 meters. 
 
 ```rust
 //define physical parameters
@@ -94,9 +94,9 @@ mycoil.modify_thickness("COIL",6.0);
 
 The magnetic field in each of the cartesian directions can be computed from 
 ```rust
-[mag_x,mag_y,mag_z] = mycoil.get_field([x,y,z],1e-18);
+[mag_x,mag_y,mag_z] = mycoil.get_field([x,y,z],1e-10);
 ```
-where 1e-18 is the tolerance to stop including additional terms in the power expansion.
+where 1e-10 is the tolerance to stop including additional terms in the power expansion, and is defined in terms of the absolute relative error as abs((new_value - old_value)/old_value).
 
 # TO-DO
 
