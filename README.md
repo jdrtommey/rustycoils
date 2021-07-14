@@ -1,4 +1,6 @@
 # RustyCoils
+[![Crates.io](https://img.shields.io/crates/v/rustycoils.svg)](https://crates.io/crates/rustycoils)
+[![Released API docs](https://docs.rs/rustycoils/badge.svg)](https://docs.rs/rustycoils)
 [![Actions Status](https://github.com/jdrtommey/solenoid/workflows/Test/badge.svg)](https://github.com/jdrtommey/rustycoils/actions)
 [![Actions Status](https://github.com/jdrtommey/solenoid/workflows/LintFormat/badge.svg)](https://github.com/jdrtommey/rustycoils/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
